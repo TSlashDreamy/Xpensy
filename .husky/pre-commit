@@ -1,0 +1,19 @@
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color (Reset)
+
+UNSTAGED_FILES=$(git diff --name-only)
+
+if [ -n "$UNSTAGED_FILES" ]; then
+  echo "\n${YELLOW}===== ⚠️ WARNING: Unstaged changes detected =====${NC}\n"
+  echo "$UNSTAGED_FILES\n"
+  echo "${YELLOW}===== Please commit or stash your changes before proceeding =====${NC}\n"
+  exit 1
+fi
+
+pnpm prettier
+pnpm lint:fix
+git add .
+
+echo "${GREEN}===== ✅ Changes staged successfully =====${NC}\n"
