@@ -6,6 +6,7 @@ git checkout main
 git pull origin main
 git checkout -
 git rebase main
+pnpm test
 
 if [ $? -ne 0 ]; then
   echo "${RED}💥 Rebase failed. Please resolve conflicts and try again."
