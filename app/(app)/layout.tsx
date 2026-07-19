@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 };
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
   display: "swap",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 export default function RootLayout({
@@ -26,7 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      <body
+        className={`${geistSans.className} antialiased bg-(image:--background)`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
