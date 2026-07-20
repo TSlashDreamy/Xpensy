@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { createClient } from "@/lib/supabase/server";
-import { Suspense } from "react";
 
 async function UserDetails() {
   const supabase = await createClient();

@@ -1,7 +1,8 @@
+import { Suspense } from "react";
+
 import { AuthButton } from "@/components/auth-button";
 import { Hero } from "@/components/hero";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Suspense } from "react";
 
 export default function Home() {
   return (

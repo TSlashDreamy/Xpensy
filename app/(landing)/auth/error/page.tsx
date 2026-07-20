@@ -1,6 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ERROR_PAGE_TEST_ID } from "./constants";
 import { Suspense } from "react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { ERROR_PAGE_TEST_ID } from "./constants";
 
 async function ErrorContent({
   searchParams,

@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  RiMacbookLine as Laptop,
+  RiMoonLine as Moon,
+  RiSunLine as Sun,
+} from "@remixicon/react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,13 +16,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  RiMacbookLine as Laptop,
-  RiMoonLine as Moon,
-  RiSunLine as Sun,
-} from "@remixicon/react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);

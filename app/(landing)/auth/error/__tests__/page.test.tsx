@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 
-import ErrorPage from "../page";
 import { ERROR_PAGE_TEST_ID } from "../constants";
+import ErrorPage from "../page";
 
 describe("ErrorPage", () => {
   it("should render with unspecified error when nothing is provided in query params", async () => {
