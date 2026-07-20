@@ -8,7 +8,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Laptop, Moon, Sun } from "lucide-react";
+import {
+  RiMacbookLine as Laptop,
+  RiMoonLine as Moon,
+  RiSunLine as Sun,
+} from "@remixicon/react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
