@@ -24,6 +24,8 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
+import { XpensyLogo } from "../xpensy-logo";
+
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
@@ -255,7 +257,11 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, open } = useSidebar();
+  const [currentIcon, setCurrentIcon] = React.useState(XpensyLogo);
+
+  const switchToLogoIcon = () => setCurrentIcon(XpensyLogo);
+  const switchToExpandIcon = () => setCurrentIcon(<RiSideBarLine />);
 
   return (
     <Button
@@ -263,15 +269,17 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon-sm"
-      className={cn(className)}
+      className={cn("cursor-pointer", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
+      onMouseOver={switchToExpandIcon}
+      onMouseLeave={switchToLogoIcon}
       {...props}
     >
-      <RiSideBarLine />
-      <span className="sr-only">Toggle Sidebar</span>
+      {currentIcon}
+      <span className={!open ? "sr-only" : ""}>Xpensy</span>
     </Button>
   );
 }

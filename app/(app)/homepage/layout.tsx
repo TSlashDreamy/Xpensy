@@ -1,4 +1,5 @@
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { AppSidebar } from "@/components/app-sidebar/app-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function ProtectedLayout({
   children,
@@ -6,9 +7,11 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <main className="min-h-screen w-full flex flex-col items-center">
-      {children}
-      <ThemeSwitcher />
-    </main>
+    <SidebarProvider defaultOpen={false}>
+      <AppSidebar />
+      <main className="min-h-screen w-full flex flex-col items-center">
+        {children}
+      </main>
+    </SidebarProvider>
   );
 }
