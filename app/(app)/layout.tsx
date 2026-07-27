@@ -1,7 +1,10 @@
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 import type { Metadata } from "next";
+
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -37,7 +40,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { sidebarMenuIcons } from "./constants";
-import { SidebarMenuButton } from "../ui/sidebar";
+import { SidebarMenuButton, useSidebar } from "../ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 import type { SIDEBAR_ICON_NAMES } from "./constants";
 
@@ -19,16 +20,28 @@ export function NavigationLink({
   iconName,
   label,
 }: NavigationLinkProps) {
+  const { open } = useSidebar();
   const pathname = usePathname();
   const isActive = pathname === route;
   const Icon = sidebarMenuIcons[iconName];
 
-  return (
+  const button = (
     <SidebarMenuButton asChild isActive={isActive}>
       <Link href={route}>
         <Icon />
         <span>{label}</span>
       </Link>
     </SidebarMenuButton>
+  );
+
+  if (open) return button;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent side="right">
+        <span className="text-secondary">{label}</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }

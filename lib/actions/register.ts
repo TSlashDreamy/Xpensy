@@ -1,41 +1,70 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
-interface RegisterState {
-  error: string | null;
+export interface RegisterState {
+  error?: {
+    email?: { errors: string[] };
+    password?: { errors: string[] };
+    repeatPassword?: { errors: string[] };
+  };
+  message?: string | null;
+  values?: { email?: string; password?: string; repeatPassword?: string };
 }
+
+const FormSchema = z
+  .object({
+    email: z.email(),
+    password: z
+      .string()
+      .min(9, { error: "Password must be at least 9 characters" }),
+    repeatPassword: z
+      .string()
+      .min(9, { error: "Password must be at least 9 characters" }),
+  })
+  .refine((data) => data.password === data.repeatPassword, {
+    error: "Passwords do not match",
+    path: ["repeatPassword"],
+  });
 
 export async function registerAction(
   _prevState: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
-  const repeatPassword = String(formData.get("repeatPassword"));
+  const formFieldsData = {
+    email: String(formData.get("email")),
+    password: String(formData.get("password")),
+    repeatPassword: String(formData.get("repeatPassword")),
+  };
 
-  if (!email || !password || !repeatPassword) {
-    return { error: "Email, password and repeat password are required" };
+  const validatedFields = FormSchema.safeParse(formFieldsData);
+
+  if (!validatedFields.success) {
+    return {
+      error: z.treeifyError(validatedFields.error).properties,
+      values: formFieldsData,
+    };
   }
 
-  if (password !== repeatPassword) {
-    return { error: "Passwords do not match" };
-  }
-
+  const { email, password } = validatedFields.data;
+  const headersList = await headers();
+  const origin = headersList.get("origin");
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/homepage`,
+      emailRedirectTo: `${origin}/auth/callback?next=/auth/register/preferences`,
     },
   });
 
   if (error) {
-    return { error: error.message };
+    return { message: error.message, values: validatedFields.data };
   }
 
-  redirect("/auth/register-success");
+  redirect("/auth/register/success");
 }

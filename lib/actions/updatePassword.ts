@@ -1,28 +1,47 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
-interface UpdatePasswordState {
-  error: string | null;
+export interface UpdatePasswordState {
+  error?: {
+    password?: { errors: string[] };
+  };
+  message?: string | null;
+  values?: { password?: string };
 }
+
+const FormSchema = z.object({
+  password: z
+    .string()
+    .min(9, { error: "Password must be at least 9 characters" }),
+});
 
 export async function updatePasswordAction(
   _prevState: UpdatePasswordState,
   formData: FormData,
 ): Promise<UpdatePasswordState> {
-  const password = String(formData.get("password"));
+  const formFieldsData = {
+    password: String(formData.get("password")),
+  };
 
-  if (!password) {
-    return { error: "Password is required" };
+  const validatedFields = FormSchema.safeParse(formFieldsData);
+
+  if (!validatedFields.success) {
+    return {
+      error: z.treeifyError(validatedFields.error).properties,
+      values: formFieldsData,
+    };
   }
 
+  const { password } = validatedFields.data;
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
-    return { error: error.message };
+    return { message: error.message };
   }
 
   redirect("/homepage");

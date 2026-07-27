@@ -1,23 +1,45 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
-interface LoginState {
-  error: string | null;
+export interface LoginState {
+  error?: {
+    email?: { errors: string[] };
+    password?: { errors: string[] };
+  };
+  message?: string | null;
+  values?: { email?: string; password?: string };
 }
+
+const FormSchema = z.object({
+  email: z.email(),
+  password: z
+    .string()
+    .min(9, { error: "Password must be at least 9 characters" }),
+});
 
 export async function loginAction(
   _prevState: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
+  const formFieldsData = {
+    email: String(formData.get("email")),
+    password: String(formData.get("password")),
+  };
 
-  if (!email || !password) {
-    return { error: "Email and password are required" };
+  const validatedFields = FormSchema.safeParse(formFieldsData);
+
+  if (!validatedFields.success) {
+    return {
+      error: z.treeifyError(validatedFields.error).properties,
+      values: formFieldsData,
+    };
   }
+
+  const { email, password } = validatedFields.data;
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
@@ -26,7 +48,7 @@ export async function loginAction(
   });
 
   if (error) {
-    return { error: error.message };
+    return { message: error.message, values: { email: formFieldsData.email } };
   }
 
   redirect("/homepage");
