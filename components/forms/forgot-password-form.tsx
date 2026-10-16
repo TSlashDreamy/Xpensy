@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/lib/actions/resetPassword";
 import { cn } from "@/lib/utils";
 
-import FormField from "./form-field";
+import FormInput from "../form-fields/form-input";
 
 export function ForgotPasswordForm({
   className,
@@ -30,7 +30,7 @@ export function ForgotPasswordForm({
     values: {},
     success: false,
   };
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isPending] = React.useActionState(
     resetPasswordAction,
     initialState,
   );
@@ -62,7 +62,7 @@ export function ForgotPasswordForm({
           <CardContent>
             <form action={formAction}>
               <FieldGroup>
-                <FormField
+                <FormInput
                   id="email"
                   name="email"
                   type="email"

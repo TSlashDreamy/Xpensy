@@ -1,5 +1,6 @@
-import { RiUser2Fill, RiSettings3Line as SettingsIcon } from "@remixicon/react";
+import { RiSettings3Line as SettingsIcon } from "@remixicon/react";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import {
   Sidebar,
@@ -15,8 +16,10 @@ import {
 } from "@/components/ui/sidebar";
 
 import { sidebarMenuItems } from "./constants";
-import { ThemeSwitcher } from "../theme-switcher";
 import { NavigationLink } from "./navigation-link";
+import ProfileItem from "./profile-item";
+import { ThemeSwitcher } from "../theme-switcher";
+import SidebarItemSkeleton from "./sidebar-item-skeleton";
 
 export function AppSidebar() {
   return (
@@ -54,11 +57,9 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <RiUser2Fill /> Username
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <Suspense fallback={<SidebarItemSkeleton />}>
+            <ProfileItem />
+          </Suspense>
           {/* TODO: Remove theme switcher */}
           <ThemeSwitcher />
         </SidebarMenu>

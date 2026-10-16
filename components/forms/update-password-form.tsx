@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/lib/actions/updatePassword";
 import { cn } from "@/lib/utils";
 
-import FormField from "./form-field";
+import FormInput from "../form-fields/form-input";
 
 export function UpdatePasswordForm({
   className,
@@ -28,7 +28,7 @@ export function UpdatePasswordForm({
     error: {},
     values: {},
   };
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isPending] = React.useActionState(
     updatePasswordAction,
     initialState,
   );
@@ -45,7 +45,7 @@ export function UpdatePasswordForm({
         <CardContent>
           <form action={formAction}>
             <FieldGroup className="flex flex-col gap-6">
-              <FormField
+              <FormInput
                 id="password"
                 name="password"
                 type="password"

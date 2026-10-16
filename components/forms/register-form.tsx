@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import React from "react";
 
-import FormField from "@/components/forms/form-field";
+import FormInput from "@/components/form-fields/form-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,7 +21,7 @@ export function RegisterForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const initialState: RegisterState = { message: null, error: {}, values: {} };
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isPending] = React.useActionState(
     registerAction,
     initialState,
   );
@@ -36,7 +36,7 @@ export function RegisterForm({
         <CardContent>
           <form action={formAction}>
             <FieldGroup>
-              <FormField
+              <FormInput
                 id="email"
                 name="email"
                 type="email"
@@ -46,7 +46,7 @@ export function RegisterForm({
                 error={state.error?.email}
                 required
               />
-              <FormField
+              <FormInput
                 id="password"
                 name="password"
                 type="password"
@@ -55,7 +55,7 @@ export function RegisterForm({
                 error={state.error?.password}
                 required
               />
-              <FormField
+              <FormInput
                 id="repeat-password"
                 name="repeatPassword"
                 type="password"

@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import React from "react";
 
-import FormField from "@/components/forms/form-field";
+import FormInput from "@/components/form-fields/form-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,13 +35,14 @@ export function CreateUserForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  // TODO: Replace temp currency with a list from an external API
   const tempItems = ["USD", "UAH", "RUB"];
   const initialState: CreateUserState = {
     message: null,
     error: {},
     values: {},
   };
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isPending] = React.useActionState(
     createUserAction,
     initialState,
   );
@@ -59,7 +60,7 @@ export function CreateUserForm({
         <CardContent>
           <form action={formAction}>
             <FieldGroup>
-              <FormField
+              <FormInput
                 id="display-name"
                 name="display_name"
                 type="text"

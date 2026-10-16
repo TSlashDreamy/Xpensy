@@ -1,28 +1,25 @@
-import { redirect } from "next/navigation";
+import { RiFoldersLine as CollectionsIcon } from "@remixicon/react";
 import { Suspense } from "react";
 
-import { createClient } from "@/lib/supabase/server";
-
-async function UserDetails() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error || !data?.claims) {
-    redirect("/auth/login");
-  }
-
-  return JSON.stringify(data.claims, null, 2);
-}
+import ExpenseCounter from "@/components/expense-counter/expense-counter";
+import ExpenseCounterSkeleton from "@/components/expense-counter/expense-counter-skeleton";
+import HomeActions from "@/components/home-actions";
+import { Button } from "@/components/ui/button";
 
 export default function Homepage() {
   return (
-    <div className="w-full flex flex-col flex-1 items-center gap-2 p-4">
-      <h2 className="font-bold text-2xl mb-4">Your user details</h2>
-      <pre className="w-full max-w-5xl text-xs font-mono p-3 rounded border overflow-auto">
-        <Suspense>
-          <UserDetails />
+    <>
+      <div className="w-full flex justify-end">
+        <Button data-icon="inline-start" variant="secondary">
+          <CollectionsIcon /> Personal expenses
+        </Button>
+      </div>
+      <div className="w-full h-full flex flex-col justify-center items-center gap-4">
+        <Suspense fallback={<ExpenseCounterSkeleton />}>
+          <ExpenseCounter />
         </Suspense>
-      </pre>
-    </div>
+        <HomeActions />
+      </div>
+    </>
   );
 }
