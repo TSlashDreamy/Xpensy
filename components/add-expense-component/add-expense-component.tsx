@@ -17,11 +17,20 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { Currency } from "@/lib/currencies";
 
 import AddExpenseTrigger from "./add-expense-trigger";
 import AddExpenseForm from "../forms/add-expense-form";
 
-export default function AddExpense() {
+interface AddExpenseProps {
+  currencies: Currency[];
+  defaultCurrency?: string;
+}
+
+export default function AddExpense({
+  currencies,
+  defaultCurrency,
+}: AddExpenseProps) {
   const [isOpened, setIsOpened] = React.useState(false);
   const isMobile = useIsMobile();
 
@@ -42,7 +51,12 @@ export default function AddExpense() {
 
             <div className="px-4 flex flex-col items-center justify-center text-center">
               <div className="w-full">
-                <AddExpenseForm isMobileView onSuccess={handleSuccess} />
+                <AddExpenseForm
+                  isMobileView
+                  onSuccess={handleSuccess}
+                  currencies={currencies}
+                  defaultCurrency={defaultCurrency}
+                />
               </div>
             </div>
           </div>
@@ -62,7 +76,11 @@ export default function AddExpense() {
           </DialogDescription>
         </DialogHeader>
         <div className="text-center">
-          <AddExpenseForm onSuccess={handleSuccess} />
+          <AddExpenseForm
+            onSuccess={handleSuccess}
+            currencies={currencies}
+            defaultCurrency={defaultCurrency}
+          />
         </div>
       </DialogContent>
     </Dialog>

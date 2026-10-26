@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React from "react";
 
-import FormInput from "@/components/form-fields/form-input";
+import FormField from "@/components/form-fields/form-field";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,7 +43,7 @@ export function LoginForm({
         <CardContent>
           <form action={formAction}>
             <FieldGroup>
-              <FormInput
+              <FormField
                 id="email"
                 name="email"
                 type="email"
@@ -53,7 +53,7 @@ export function LoginForm({
                 error={state.error?.email}
                 required
               />
-              <FormInput
+              <FormField
                 id="password"
                 name="password"
                 type="password"

@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import FormInput from "./form-input";
+import FormField from "./form-field";
 
 import type { FormFieldProps } from "./types";
 
@@ -42,7 +42,7 @@ export function DatePicker({
 
   return (
     <div>
-      <FormInput
+      <FormField
         type="hidden"
         defaultValue={date ? format(date, "yyyy-MM-dd") : undefined}
         error={error}
@@ -53,6 +53,7 @@ export function DatePicker({
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            aria-invalid={Boolean(error?.errors.length)}
             variant="outline"
             data-empty={!date}
             className="w-full mt-2 justify-start text-left font-normal data-[empty=true]:text-muted-foreground"

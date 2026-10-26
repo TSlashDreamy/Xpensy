@@ -4,41 +4,43 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from "@/components/ui/combobox";
+import type { Currency } from "@/lib/currencies";
+import { getCurrencyFlag } from "@/lib/currency-flag";
+import { matchesCurrencyQuery } from "@/lib/currency-search";
 
-// TODO: Replace mocked list with an external API
-export const mockedCurrencyList = {
-  USD: { symbol: "$", flag: "🇺🇸" },
-  UAH: { symbol: "₴", flag: "🇺🇦" },
-  EUR: { symbol: "€", flag: "🇪🇺" },
-  RUB: { symbol: "₽", flag: "🇷🇺" },
-};
 
-export type CurrencyCode = keyof typeof mockedCurrencyList;
+export type CurrencyCode = Currency["code"];
 
 interface CurrencySwitcherProps {
+  currencies: Currency[];
+  value: CurrencyCode;
+  onValueChange?: (currency: CurrencyCode) => void;
   variant?: "symbol" | "code" | "flag";
   name?: string;
-  defaultValue?: string;
-  onCurrencyChange?: (currency: CurrencyCode) => void;
 }
 
-const isCurrencyCode = (value: string | undefined): value is CurrencyCode =>
-  value !== undefined && value in mockedCurrencyList;
-
+/**
+ * A fully controlled currency combobox with search. The selected currency is
+ * owned by the parent, which keeps it in sync with the rest of the app.
+ */
 export function CurrencySwitcher({
+  currencies,
+  value,
+  onValueChange,
   variant = "symbol",
   name,
-  defaultValue,
-  onCurrencyChange,
 }: CurrencySwitcherProps) {
-  const [currency, setCurrency] = React.useState<CurrencyCode>(() =>
-    isCurrencyCode(defaultValue) ? defaultValue : "USD",
+  const currentCurrency = React.useMemo(
+    () => currencies.find(({ code }) => code === value) ?? null,
+    [currencies, value],
   );
 
   const presentation = React.useMemo(() => {
@@ -46,69 +48,78 @@ export function CurrencySwitcher({
       case "code":
         return (
           <span
-            aria-label={`Selected currency: ${currency}`}
+            aria-label={`Selected currency: ${value}`}
             className="text-[0.70rem] text-muted-foreground uppercase"
           >
-            {currency}
+            {value}
           </span>
         );
       case "symbol":
         return (
-          <span
-            aria-label={`Selected currency: ${currency}`}
-            className="text-2xl"
-          >
-            {mockedCurrencyList[currency].symbol}
+          <span aria-label={`Selected currency: ${value}`} className="text-2xl">
+            {currentCurrency?.symbol ?? value}
           </span>
         );
       case "flag":
-        return mockedCurrencyList[currency].flag;
+        return currentCurrency ? getCurrencyFlag(currentCurrency) : value;
       default:
         throw new Error(`${variant} is not a supported currency variant`);
     }
-  }, [variant, currency]);
+  }, [variant, value, currentCurrency]);
 
-  const setNewCurrency = (selectedCurrency: string) => {
-    if (isCurrencyCode(selectedCurrency)) {
-      setCurrency(selectedCurrency);
+  const handleValueChange = React.useCallback(
+    (currency: Currency | null) => {
+      if (!currency) {
+        return;
+      }
 
-      if (onCurrencyChange) onCurrencyChange(selectedCurrency);
-    }
-  };
+      onValueChange?.(currency.code);
+    },
+    [onValueChange],
+  );
 
   return (
     <>
-      <input
-        type="hidden"
-        name={name}
-        value={currency}
-        defaultValue={defaultValue}
-      />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-xl">
-            {presentation}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-content" align="start">
-          <DropdownMenuRadioGroup
-            value={currency}
-            onValueChange={setNewCurrency}
-          >
-            {Object.entries(mockedCurrencyList).map(
-              ([currencyCode, currencyDetails]) => (
-                <DropdownMenuRadioItem
-                  className="flex gap-2"
-                  key={currencyCode}
-                  value={currencyCode}
-                >
-                  <span>{`${currencyDetails.flag} ${currencyCode}`}</span>
-                </DropdownMenuRadioItem>
-              ),
+      {name ? <input type="hidden" name={name} value={value} /> : null}
+      <Combobox
+        items={currencies}
+        value={currentCurrency}
+        onValueChange={handleValueChange}
+        itemToStringLabel={(currency: Currency) => currency.code}
+        itemToStringValue={(currency: Currency) => currency.code}
+        filter={matchesCurrencyQuery}
+      >
+        <ComboboxTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-xl"
+              aria-label="Select currency"
+            />
+          }
+          showChevron={false}
+        >
+          {presentation}
+        </ComboboxTrigger>
+        <ComboboxContent className="w-64 min-w-64">
+          <ComboboxInput
+            showTrigger={false}
+            showClear={false}
+            placeholder="Search currency"
+            aria-label="Search currency"
+          />
+          <ComboboxEmpty>No currency found.</ComboboxEmpty>
+          <ComboboxList>
+            {(currency: Currency) => (
+              <ComboboxItem key={currency.code} value={currency}>
+                <span>{getCurrencyFlag(currency)}</span>
+                <span>{currency.code}</span>
+                <span className="text-muted-foreground">{currency.name}</span>
+              </ComboboxItem>
             )}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
     </>
   );
 }

@@ -18,7 +18,7 @@ import {
 } from "@/lib/actions/resetPassword";
 import { cn } from "@/lib/utils";
 
-import FormInput from "../form-fields/form-input";
+import FormField from "../form-fields/form-field";
 
 export function ForgotPasswordForm({
   className,
@@ -62,7 +62,7 @@ export function ForgotPasswordForm({
           <CardContent>
             <form action={formAction}>
               <FieldGroup>
-                <FormInput
+                <FormField
                   id="email"
                   name="email"
                   type="email"

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 
 import type { FormFieldProps } from "./types";
 
-export default function FormInput({
+export default function FormField({
   error,
   label,
   id,

@@ -1,15 +1,19 @@
 "use server";
 
+import { cache } from "react";
+
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { createClient } from "@/lib/supabase/server";
 
-interface UserProfile {
+export interface UserProfile {
   display_name: string;
   avatar_url: string | null;
   preferred_currency: string;
 }
 
-export async function getUserProfile() {
+// Memoized per request, so reading the profile from several components
+// results in a single query
+export const getUserProfile = cache(async (): Promise<UserProfile | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,4 +27,4 @@ export async function getUserProfile() {
     .maybeSingle();
 
   return data;
-}
+});

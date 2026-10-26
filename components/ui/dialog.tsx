@@ -6,6 +6,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import { PortalContainerProvider } from "@/components/ui/portal-container";
 
 function Dialog({
   ...props
@@ -55,6 +56,9 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
+  const [portalContainer, setPortalContainer] =
+    React.useState<HTMLDivElement | null>(null);
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -66,7 +70,14 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
+        <div
+          ref={setPortalContainer}
+          data-slot="dialog-portal-container"
+          className="pointer-events-none absolute inset-0 z-50"
+        />
+        <PortalContainerProvider container={portalContainer}>
+          {children}
+        </PortalContainerProvider>
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import FormInput from "@/components/form-fields/form-input";
+import FormField from "@/components/form-fields/form-field";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,14 +29,22 @@ import {
   createUserAction,
   type CreateUserState,
 } from "@/lib/actions/createUser";
+import type { Currency } from "@/lib/currencies";
+import { getCurrencyFlag } from "@/lib/currency-flag";
+import { matchesCurrencyQuery } from "@/lib/currency-search";
 import { cn } from "@/lib/utils";
 
+
+interface CreateUserFormProps {
+  currencies: Currency[];
+  className?: string;
+}
+
 export function CreateUserForm({
+  currencies,
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
-  // TODO: Replace temp currency with a list from an external API
-  const tempItems = ["USD", "UAH", "RUB"];
+}: CreateUserFormProps) {
   const initialState: CreateUserState = {
     message: null,
     error: {},
@@ -46,6 +54,18 @@ export function CreateUserForm({
     createUserAction,
     initialState,
   );
+
+  // Restore the currency the user picked when the server hands back the
+  // values of a failed submission
+  const restoredCurrency =
+    currencies.find(({ code }) => code === state.values?.preferred_currency) ??
+    null;
+  const [selectedCurrency, setSelectedCurrency] =
+    React.useState<Currency | null>(restoredCurrency);
+
+  React.useEffect(() => {
+    setSelectedCurrency(restoredCurrency);
+  }, [restoredCurrency]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -60,7 +80,7 @@ export function CreateUserForm({
         <CardContent>
           <form action={formAction}>
             <FieldGroup>
-              <FormInput
+              <FormField
                 id="display-name"
                 name="display_name"
                 type="text"
@@ -71,8 +91,17 @@ export function CreateUserForm({
                 required
               />
               <Field>
-                <FieldLabel htmlFor="password">Preffered currency</FieldLabel>
-                <Combobox items={tempItems}>
+                <FieldLabel htmlFor="preferred_currency">
+                  Preffered currency
+                </FieldLabel>
+                <Combobox
+                  items={currencies}
+                  value={selectedCurrency}
+                  onValueChange={setSelectedCurrency}
+                  itemToStringLabel={(currency: Currency) => currency.code}
+                  itemToStringValue={(currency: Currency) => currency.code}
+                  filter={matchesCurrencyQuery}
+                >
                   <ComboboxInput
                     aria-invalid={Boolean(
                       state.error?.preferred_currency?.errors.length,
@@ -84,9 +113,13 @@ export function CreateUserForm({
                   <ComboboxContent>
                     <ComboboxEmpty>No currency found.</ComboboxEmpty>
                     <ComboboxList>
-                      {(item) => (
-                        <ComboboxItem key={item} value={item}>
-                          {item}
+                      {(currency: Currency) => (
+                        <ComboboxItem key={currency.code} value={currency}>
+                          <span>{getCurrencyFlag(currency)}</span>
+                          <span>{currency.code}</span>
+                          <span className="text-muted-foreground">
+                            {currency.name}
+                          </span>
                         </ComboboxItem>
                       )}
                     </ComboboxList>

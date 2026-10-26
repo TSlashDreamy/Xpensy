@@ -17,7 +17,7 @@ import {
 } from "@/lib/actions/updatePassword";
 import { cn } from "@/lib/utils";
 
-import FormInput from "../form-fields/form-input";
+import FormField from "../form-fields/form-field";
 
 export function UpdatePasswordForm({
   className,
@@ -45,7 +45,7 @@ export function UpdatePasswordForm({
         <CardContent>
           <form action={formAction}>
             <FieldGroup className="flex flex-col gap-6">
-              <FormInput
+              <FormField
                 id="password"
                 name="password"
                 type="password"

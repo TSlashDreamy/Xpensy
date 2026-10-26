@@ -1,20 +1,21 @@
-import { getUserExpenses } from "@/lib/actions/getUserExpenses";
+import { getUserExpenseSum } from "@/lib/actions/getUserExpenseSum";
+import { getUserProfile } from "@/lib/actions/getUserProfile";
+import { getCurrencies } from "@/lib/currencies";
 
-import { CurrencySwitcher } from "../currency-switcher";
+import { CurrencyPreferenceSwitcher } from "./currency-preference-switcher";
 
 export default async function ExpenseCounter() {
-  const expensesData = await getUserExpenses();
+  const [profile, currencies] = await Promise.all([
+    getUserProfile(),
+    getCurrencies(),
+  ]);
 
-  // TODO: This is not enough. We should convert currency and only then sum everything
-  const expenses =
-    expensesData?.reduce(
-      (expensesSum, currentExpense) => expensesSum + currentExpense.amount,
-      0,
-    ) ?? 0;
+  const currency = profile?.preferred_currency ?? "USD";
+  const expenses = (await getUserExpenseSum(currency)) ?? 0;
 
   return (
     <div className="flex items-center gap-1">
-      <CurrencySwitcher />
+      <CurrencyPreferenceSwitcher currencies={currencies} value={currency} />
       <span className="text-counter">{expenses}</span>
     </div>
   );

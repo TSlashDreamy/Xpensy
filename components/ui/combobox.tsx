@@ -11,6 +11,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { usePortalContainer } from "@/components/ui/portal-container";
 import { cn } from "@/lib/utils";
 
 const Combobox = ComboboxPrimitive.Root;
@@ -22,8 +23,9 @@ function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
 function ComboboxTrigger({
   className,
   children,
+  showChevron = true,
   ...props
-}: ComboboxPrimitive.Trigger.Props) {
+}: ComboboxPrimitive.Trigger.Props & { showChevron?: boolean }) {
   return (
     <ComboboxPrimitive.Trigger
       data-slot="combobox-trigger"
@@ -31,7 +33,9 @@ function ComboboxTrigger({
       {...props}
     >
       {children}
-      <RiArrowDownSLine className="pointer-events-none size-3.5 text-muted-foreground" />
+      {showChevron ? (
+        <RiArrowDownSLine className="pointer-events-none size-3.5 text-muted-foreground" />
+      ) : null}
     </ComboboxPrimitive.Trigger>
   );
 }
@@ -99,15 +103,17 @@ function ComboboxContent({
     ComboboxPrimitive.Positioner.Props,
     "side" | "align" | "sideOffset" | "alignOffset" | "anchor"
   >) {
+  const portalContainer = usePortalContainer();
+
   return (
-    <ComboboxPrimitive.Portal>
+    <ComboboxPrimitive.Portal container={portalContainer ?? undefined}>
       <ComboboxPrimitive.Positioner
         side={side}
         sideOffset={sideOffset}
         align={align}
         alignOffset={alignOffset}
         anchor={anchor}
-        className="isolate z-50"
+        className="isolate z-50 pointer-events-auto"
       >
         <ComboboxPrimitive.Popup
           data-slot="combobox-content"
@@ -128,7 +134,7 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        "no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto overscroll-contain p-1 data-empty:p-0",
+        "no-scrollbar max-h-[min(15.75rem,calc(var(--available-height)-2.25rem))] scroll-py-1 overflow-y-auto overscroll-contain p-1 data-empty:p-0",
         className,
       )}
       {...props}
