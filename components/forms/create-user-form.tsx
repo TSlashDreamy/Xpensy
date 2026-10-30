@@ -34,7 +34,6 @@ import { getCurrencyFlag } from "@/lib/currency-flag";
 import { matchesCurrencyQuery } from "@/lib/currency-search";
 import { cn } from "@/lib/utils";
 
-
 interface CreateUserFormProps {
   currencies: Currency[];
   className?: string;

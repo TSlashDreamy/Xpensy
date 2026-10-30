@@ -2,7 +2,7 @@ import { getUserExpenseSum } from "@/lib/actions/getUserExpenseSum";
 import { getUserProfile } from "@/lib/actions/getUserProfile";
 import { getCurrencies } from "@/lib/currencies";
 
-import { CurrencyPreferenceSwitcher } from "./currency-preference-switcher";
+import ExpenseCounterClient from "./expense-counter-client";
 
 export default async function ExpenseCounter() {
   const [profile, currencies] = await Promise.all([
@@ -14,9 +14,10 @@ export default async function ExpenseCounter() {
   const expenses = (await getUserExpenseSum(currency)) ?? 0;
 
   return (
-    <div className="flex items-center gap-1">
-      <CurrencyPreferenceSwitcher currencies={currencies} value={currency} />
-      <span className="text-counter">{expenses}</span>
-    </div>
+    <ExpenseCounterClient
+      currencies={currencies}
+      expensesAmount={expenses}
+      selectedCurrency={currency}
+    />
   );
 }

@@ -1,7 +1,31 @@
 import type { Currency } from "@/lib/currencies";
 
-const isCountryCode = (code: string) =>
-  code.length === 3 && !code.startsWith("X") && code !== "CMD";
+// We can't show county flag emoji or symbol for those codes
+const NO_SYMBOLIC_CURRENCIES = new Set([
+  "XAF",
+  "XCD",
+  "XCG",
+  "XOF",
+  "XPF",
+  "ANG",
+  "CMD",
+]);
+
+const isCountryCode = (code: string, isoNumeric?: number | null) => {
+  if (NO_SYMBOLIC_CURRENCIES.has(code)) {
+    return false;
+  }
+
+  if (isoNumeric !== null && isoNumeric !== undefined) {
+    return true;
+  }
+
+  if (code.length !== 3) {
+    return false;
+  }
+
+  return true;
+};
 
 /**
  * Converts a 2-letter ISO country code (e.g. "US") into a flag emoji.
@@ -24,6 +48,7 @@ const codeToFlag = (code: string) =>
 export function getCurrencyFlag({
   code,
   symbol,
-}: Pick<Currency, "code" | "symbol">) {
-  return isCountryCode(code) ? codeToFlag(code) : (symbol ?? code);
+  isoNumeric,
+}: Pick<Currency, "code" | "symbol"> & { isoNumeric?: number | null }) {
+  return isCountryCode(code, isoNumeric) ? codeToFlag(code) : symbol;
 }

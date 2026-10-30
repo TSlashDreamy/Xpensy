@@ -5,22 +5,44 @@ export interface Currency {
   code: string;
   name: string;
   symbol: string | null;
+  isoNumeric: number | null;
 }
 
 const FrankfurterCurrencySchema = z.object({
   iso_code: z.string().length(3),
   name: z.string(),
   symbol: z.string().nullable(),
+  iso_numeric: z.coerce.number().nullable().optional(),
 });
 
 const FrankfurterCurrenciesSchema = z.array(FrankfurterCurrencySchema);
 
 const FALLBACK_CURRENCIES: Currency[] = [
-  { code: "EUR", name: "Euro", symbol: "€" },
-  { code: "RUB", name: "Russian Ruble", symbol: "₽" },
-  { code: "UAH", name: "Ukrainian Hryvnia", symbol: "₴" },
-  { code: "USD", name: "United States Dollar", symbol: "$" },
+  { code: "USD", name: "United States Dollar", symbol: "$", isoNumeric: 0 },
 ];
+
+const CRYPTO_OR_METAL = new Set([
+  "BTC",
+  "ETH",
+  "BCH",
+  "LTC",
+  "XRP",
+  "XMR",
+  "DASH",
+  "ZEC",
+  "ETC",
+  "BNB",
+  "SOL",
+  "ADA",
+  "DOT",
+  "MATIC",
+  "AVAX",
+  "XAG",
+  "XAU",
+  "XPD",
+  "XPT",
+  "XDR",
+]);
 
 const FRANKFURTER_CURRENCIES_URL = "https://api.frankfurter.dev/v2/currencies";
 
@@ -48,7 +70,13 @@ export async function getCurrencies(): Promise<Currency[]> {
     const parsed = FrankfurterCurrenciesSchema.parse(await response.json());
 
     return parsed
-      .map(({ iso_code, name, symbol }) => ({ code: iso_code, name, symbol }))
+      .map(({ iso_code, name, symbol, iso_numeric }) => ({
+        code: iso_code,
+        name,
+        symbol,
+        isoNumeric: iso_numeric ?? null,
+      }))
+      .filter(({ code }) => !CRYPTO_OR_METAL.has(code))
       .sort((a, b) => a.code.localeCompare(b.code));
   } catch (error) {
     console.error(error);

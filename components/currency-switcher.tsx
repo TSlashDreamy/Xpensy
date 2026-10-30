@@ -16,7 +16,6 @@ import type { Currency } from "@/lib/currencies";
 import { getCurrencyFlag } from "@/lib/currency-flag";
 import { matchesCurrencyQuery } from "@/lib/currency-search";
 
-
 export type CurrencyCode = Currency["code"];
 
 interface CurrencySwitcherProps {

@@ -71,5 +71,5 @@ export async function getUserExpenseSum(
     }),
   );
 
-  return sums.reduce((sum, value) => sum + value, 0);
+  return Number(sums.reduce((sum, value) => sum + value, 0).toFixed(2));
 }

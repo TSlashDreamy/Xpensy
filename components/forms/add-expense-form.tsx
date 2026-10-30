@@ -14,7 +14,6 @@ import { CurrencySwitcher } from "../currency-switcher";
 import ComboboxField from "../form-fields/combobox-field";
 import { DatePicker } from "../form-fields/date-picker";
 
-
 interface AddExpenseFormProps {
   onSuccess: () => void;
   isMobileView?: boolean;
