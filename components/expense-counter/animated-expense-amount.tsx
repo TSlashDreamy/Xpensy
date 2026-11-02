@@ -13,42 +13,51 @@ interface AnimatedExpenseAmountProps {
   className?: string;
 }
 
-const rollDigits = (text: string) =>
-  text.replace(/\d/g, (digit) => String((Number(digit) + 1) % 10));
+const NON_DIGIT_RE = /[^0-9]/;
+
+const rollDigitsArray = (digits: string[]): string[] =>
+  digits.map((character) => {
+    if (NON_DIGIT_RE.test(character)) {
+      return character;
+    }
+    return String((Number(character) + 1) % 10);
+  });
 
 export default function AnimatedExpenseAmount({
   expensesAmount,
   isPending,
   className,
 }: AnimatedExpenseAmountProps) {
-  const [displayedText, setDisplayedText] = React.useState(
-    String(expensesAmount),
+  const [displayedDigits, setDisplayedDigits] = React.useState<string[]>(() =>
+    String(expensesAmount).split(""),
   );
   const prefersReducedMotion = usePrefersReducedMotion();
 
   React.useEffect(() => {
     if (!isPending || prefersReducedMotion) {
-      setDisplayedText(String(expensesAmount));
+      setDisplayedDigits(String(expensesAmount).split(""));
       return;
     }
 
+    setDisplayedDigits((previous) => rollDigitsArray(previous));
+
     const id = setInterval(() => {
-      setDisplayedText((previous) => rollDigits(previous));
+      setDisplayedDigits((previous) => rollDigitsArray(previous));
     }, 100);
 
     return () => clearInterval(id);
   }, [isPending, expensesAmount, prefersReducedMotion]);
 
+  const length = displayedDigits.length;
+
   return (
     <span className={cn("relative inline-flex tabular-nums", className)}>
       <span className="sr-only">{String(expensesAmount)}</span>
       <span aria-hidden="true" className="inline-flex">
-        {displayedText.split("").map((character, index) => {
-          // key from the RIGHT so columns stay stable when digit count changes
-          const key = displayedText.length - 1 - index;
+        {displayedDigits.map((character, index) => {
+          const key = length - 1 - index;
 
-          // in case the character is not a digit
-          if (!/[0-9]/.test(character)) {
+          if (NON_DIGIT_RE.test(character)) {
             return (
               <span className="h-[1em] leading-[1em]" key={key}>
                 {character}

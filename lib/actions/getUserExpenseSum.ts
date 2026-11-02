@@ -71,5 +71,6 @@ export async function getUserExpenseSum(
     }),
   );
 
-  return Number(sums.reduce((sum, value) => sum + value, 0).toFixed(2));
+  const total = sums.reduce((sum, value) => sum + value, 0);
+  return Math.round((total + Number.EPSILON) * 100) / 100;
 }
