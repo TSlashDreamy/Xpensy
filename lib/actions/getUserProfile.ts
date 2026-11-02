@@ -16,19 +16,21 @@ export interface UserProfile {
 export const getUserProfile = cache(
   async (userId?: string): Promise<UserProfile | null> => {
     const supabase = await createClient();
-    let currentUser;
+    let profileId = userId;
 
-    if (!userId) {
-      const { data } = await supabase.auth.getUser();
-      currentUser = data.user;
+    if (!profileId) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      profileId = user.id;
     }
-
-    if (!currentUser) return null;
 
     const { data }: { data: UserProfile | null } = await supabase
       .from(SUPABASE_TABLES.PROFILES)
       .select("display_name, avatar_url, preferred_currency")
-      .eq("id", userId ?? currentUser.id)
+      .eq("id", profileId)
       .maybeSingle();
 
     return data;

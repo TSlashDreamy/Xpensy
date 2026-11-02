@@ -1,3 +1,5 @@
+import { format, parseISO } from "date-fns";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Item,
@@ -8,12 +10,19 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { getLatestGroupedExpenses } from "@/lib/actions/getLatestGroupedExpenses";
+import { getCurrencies } from "@/lib/currencies";
+
+const amountFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 function getInitials(displayName?: string) {
-  if (!displayName) return "?";
+  const name = displayName?.trim();
+  if (!name) return "?";
 
-  return displayName
-    .split(" ")
+  return name
+    .split(/\s+/)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
@@ -21,9 +30,16 @@ function getInitials(displayName?: string) {
 }
 
 export default async function LastExpenses() {
-  const groupedExpenses = await getLatestGroupedExpenses({ limit: 3 });
+  const [groupedExpenses, currencies] = await Promise.all([
+    getLatestGroupedExpenses({ limit: 3 }),
+    getCurrencies(),
+  ]);
 
   if (!groupedExpenses) return null;
+
+  const symbols = new Map(
+    currencies.map(({ code, symbol }) => [code, symbol ?? code]),
+  );
 
   return groupedExpenses.flatMap(({ user, expenses }) =>
     expenses.map((expense) => (
@@ -38,9 +54,15 @@ export default async function LastExpenses() {
         </ItemMedia>
         <ItemContent className="flex-row justify-evenly">
           <ItemTitle>{expense.category}</ItemTitle>
-          <ItemDescription>{String(expense.expense_date)}</ItemDescription>
+          <ItemDescription>
+            {format(parseISO(expense.expense_date), "MMM d")}
+          </ItemDescription>
         </ItemContent>
-        <ItemActions>{`${expense.currency} ${expense.amount}`}</ItemActions>
+        <ItemActions>
+          {`${symbols.get(expense.currency) ?? expense.currency} ${amountFormatter.format(
+            expense.amount,
+          )}`}
+        </ItemActions>
       </Item>
     )),
   );

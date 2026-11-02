@@ -46,6 +46,8 @@ export async function getLatestGroupedExpenses({
       "id, amount, currency, description, category, expense_date, user_id, profiles(display_name, avatar_url)",
     )
     .eq("user_id", user.id)
+    // collection_id === null -> personal expenses
+    .filter("collection_id", "is", "null")
     .order("created_at", { ascending: false });
 
   if (limit !== undefined) query = query.limit(limit);
@@ -59,7 +61,9 @@ export async function getLatestGroupedExpenses({
     const group = groupedExpenses.get(expense.user_id);
 
     if (group) {
-      group.expenses.push(expense);
+      if (limit === undefined || group.expenses.length < limit) {
+        group.expenses.push(expense);
+      }
       continue;
     }
 
