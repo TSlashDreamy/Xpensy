@@ -1,5 +1,3 @@
-import { RiArrowRightSLine as ArrowIcon } from "@remixicon/react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Item,
@@ -9,34 +7,41 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
-import type { UserExpense } from "@/lib/actions/getExpenses";
+import { getLatestGroupedExpenses } from "@/lib/actions/getLatestGroupedExpenses";
+
+function getInitials(displayName?: string) {
+  if (!displayName) return "?";
+
+  return displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export default async function LastExpenses() {
-  // TODO: Render the real expenses once the list is ready
-  const latestExpenses = null as UserExpense[] | null;
+  const groupedExpenses = await getLatestGroupedExpenses({ limit: 3 });
 
-  if (!latestExpenses) return null;
+  if (!groupedExpenses) return null;
 
-  return latestExpenses.map((expense) => (
-    <Item key={expense.id}>
-      <ItemMedia>
-        <Avatar>
-          <AvatarImage
-            src="https://github.com/evilrabbit.png"
-            alt="@evilrabbit"
-          />
-          <AvatarFallback>ER</AvatarFallback>
-        </Avatar>
-      </ItemMedia>
-      <ItemContent>
-        <ItemTitle>Visit our documentation</ItemTitle>
-        <ItemDescription>
-          Learn how to get started with your components.
-        </ItemDescription>
-      </ItemContent>
-      <ItemActions>
-        <ArrowIcon className="size-4" />
-      </ItemActions>
-    </Item>
-  ));
+  return groupedExpenses.flatMap(({ user, expenses }) =>
+    expenses.map((expense) => (
+      <Item key={expense.id} className="max-w-lg">
+        <ItemMedia>
+          <Avatar>
+            {user?.avatar_url ? (
+              <AvatarImage src={user.avatar_url} alt={user.display_name} />
+            ) : null}
+            <AvatarFallback>{getInitials(user?.display_name)}</AvatarFallback>
+          </Avatar>
+        </ItemMedia>
+        <ItemContent className="flex-row justify-evenly">
+          <ItemTitle>{expense.category}</ItemTitle>
+          <ItemDescription>{String(expense.expense_date)}</ItemDescription>
+        </ItemContent>
+        <ItemActions>{`${expense.currency} ${expense.amount}`}</ItemActions>
+      </Item>
+    )),
+  );
 }

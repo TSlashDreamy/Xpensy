@@ -13,18 +13,24 @@ export interface UserProfile {
 
 // Memoized per request, so reading the profile from several components
 // results in a single query
-export const getUserProfile = cache(async (): Promise<UserProfile | null> => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+export const getUserProfile = cache(
+  async (userId?: string): Promise<UserProfile | null> => {
+    const supabase = await createClient();
+    let currentUser;
 
-  const { data }: { data: UserProfile | null } = await supabase
-    .from(SUPABASE_TABLES.PROFILES)
-    .select("display_name, avatar_url, preferred_currency")
-    .eq("id", user.id)
-    .maybeSingle();
+    if (!userId) {
+      const { data } = await supabase.auth.getUser();
+      currentUser = data.user;
+    }
 
-  return data;
-});
+    if (!currentUser) return null;
+
+    const { data }: { data: UserProfile | null } = await supabase
+      .from(SUPABASE_TABLES.PROFILES)
+      .select("display_name, avatar_url, preferred_currency")
+      .eq("id", userId ?? currentUser.id)
+      .maybeSingle();
+
+    return data;
+  },
+);
