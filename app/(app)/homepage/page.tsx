@@ -21,7 +21,7 @@ export default function Homepage() {
           <CollectionsIcon /> Personal expenses
         </Button>
       </div>
-      <div className="min-h-0 w-full flex flex-1 flex-col justify-center items-center gap-4">
+      <div className="min-h-0 w-full flex flex-1 flex-col justify-center items-center gap-3 sm:gap-4">
         <Suspense fallback={<ExpenseCounterSkeleton />}>
           <ExpenseCounter />
         </Suspense>
@@ -29,7 +29,7 @@ export default function Homepage() {
           <HomeActions />
         </Suspense>
       </div>
-      <div className="-mb-12 h-30 flex flex-col items-center gap-3.5 shrink-0 overflow-hidden">
+      <div className="absolute -bottom-12 inset-x-0 h-30 flex flex-col items-center gap-3.5 shrink-0 overflow-hidden">
         <Badge variant="secondary">
           <HistoryIcon />
           Latest expenses

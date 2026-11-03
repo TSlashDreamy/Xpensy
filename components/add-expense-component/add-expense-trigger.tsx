@@ -16,8 +16,8 @@ export default function AddExpenseTrigger({
   if (isMobileView) {
     return (
       <DrawerTrigger asChild>
-        <Button className="rounded-full size-10" variant="outline">
-          <AddIcon className="size-4" />
+        <Button className="rounded-full size-14 sm:size-10" variant="outline">
+          <AddIcon className="size-5 sm:size-4" />
         </Button>
       </DrawerTrigger>
     );
@@ -25,8 +25,8 @@ export default function AddExpenseTrigger({
 
   return (
     <DialogTrigger asChild>
-      <Button className="rounded-full size-10" variant="outline">
-        <AddIcon className="size-4" />
+      <Button className="rounded-full size-14 sm:size-10" variant="outline">
+        <AddIcon className="size-5 sm:size-4" />
       </Button>
     </DialogTrigger>
   );

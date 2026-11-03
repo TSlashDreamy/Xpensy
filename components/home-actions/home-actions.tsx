@@ -16,16 +16,16 @@ export default async function HomeActions() {
   ]);
 
   return (
-    <div className="flex gap-3">
-      <Button className="rounded-full size-10" variant="outline">
-        <LimitIcon className="size-4" />
+    <div className="flex gap-5 sm:gap-3">
+      <Button className="rounded-full size-14 sm:size-10" variant="outline">
+        <LimitIcon className="size-5 sm:size-4" />
       </Button>
       <AddExpense
         currencies={currencies}
         defaultCurrency={profile?.preferred_currency ?? "USD"}
       />
-      <Button className="rounded-full size-10" variant="outline">
-        <HideIcon className="size-4" />
+      <Button className="rounded-full size-14 sm:size-10" variant="outline">
+        <HideIcon className="size-5 sm:size-4" />
       </Button>
     </div>
   );

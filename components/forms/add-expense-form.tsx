@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import React from "react";
 
 import FormField from "@/components/form-fields/form-field";
@@ -39,6 +40,8 @@ export default function AddExpenseForm({
     initialState,
   );
 
+  const todayDate = React.useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
   // Currency before fail -> User preference currency -> Default fallback currency
   const initialCurrency =
     state.values?.expenseCurrency ?? defaultCurrency ?? "USD";
@@ -74,6 +77,7 @@ export default function AddExpenseForm({
             name="expenseAmount"
             className="h-auto py-0 field-sizing-content bg-transparent! border-none ring-0! text-7xl! font-bold text-center tracking-tighter"
             placeholder="0"
+            step="0.01"
             type="number"
             defaultValue={state.values?.expenseAmount}
             error={state.error?.expenseAmount}
@@ -110,7 +114,7 @@ export default function AddExpenseForm({
           id="expenseDate"
           name="expenseDate"
           label="Date"
-          defaultValue={state.values?.expenseDate}
+          defaultValue={state.values?.expenseDate || todayDate}
           error={state.error?.expenseDate}
           required
         />
