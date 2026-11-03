@@ -119,7 +119,11 @@ export default function ComboboxField({
           </ComboboxEmpty>
           <ComboboxList>
             {(item) => (
-              <ComboboxItem key={item} value={item}>
+              <ComboboxItem
+                key={item}
+                value={item}
+                className="py-2 text-sm sm:text-xs sm:py-1"
+              >
                 {item === createOption ? `Create "${item}"` : item}
               </ComboboxItem>
             )}

@@ -32,9 +32,15 @@ export function DatePicker({
   defaultValue,
   ...other
 }: FormFieldProps) {
+  const [isOpened, setIsOpened] = React.useState<boolean>(false);
   const [date, setDate] = React.useState<Date | undefined>(() =>
     parseDefaultDate(defaultValue),
   );
+
+  const handlePickDate = (newDate: Date | undefined) => {
+    if (newDate) setDate(newDate);
+    setIsOpened(false);
+  };
 
   React.useEffect(() => {
     setDate(parseDefaultDate(defaultValue));
@@ -50,7 +56,7 @@ export function DatePicker({
         label={label}
         {...other}
       />
-      <Popover>
+      <Popover open={isOpened} onOpenChange={setIsOpened}>
         <PopoverTrigger asChild>
           <Button
             aria-invalid={Boolean(error?.errors.length)}
@@ -63,7 +69,12 @@ export function DatePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
-          <Calendar mode="single" selected={date} onSelect={setDate} />
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={handlePickDate}
+            required
+          />
         </PopoverContent>
       </Popover>
     </div>

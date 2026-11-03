@@ -102,6 +102,7 @@ export function CurrencySwitcher({
         </ComboboxTrigger>
         <ComboboxContent className="w-64 min-w-64">
           <ComboboxInput
+            className="h-auto! py-1 text-sm sm:text-xs sm:py-0"
             showTrigger={false}
             showClear={false}
             placeholder="Search currency"
@@ -110,7 +111,11 @@ export function CurrencySwitcher({
           <ComboboxEmpty>No currency found.</ComboboxEmpty>
           <ComboboxList>
             {(currency: Currency) => (
-              <ComboboxItem key={currency.code} value={currency}>
+              <ComboboxItem
+                className="py-2 text-sm sm:text-xs sm:py-1"
+                key={currency.code}
+                value={currency}
+              >
                 <span>{getCurrencyFlag(currency)}</span>
                 <span>{currency.code}</span>
                 <span className="text-muted-foreground">{currency.name}</span>
