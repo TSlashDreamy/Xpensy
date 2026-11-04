@@ -38,10 +38,14 @@ export default function AddExpense({
 
   if (isMobile) {
     return (
-      <Drawer open={isOpened} onOpenChange={setIsOpened}>
+      <Drawer
+        open={isOpened}
+        onOpenChange={setIsOpened}
+        repositionInputs={false}
+      >
         <AddExpenseTrigger isMobileView />
         <DrawerContent>
-          <div className="mx-auto w-full max-w-sm overflow-y-scroll">
+          <div className="mx-auto w-full max-w-sm overflow-y-auto">
             <DrawerHeader>
               <DrawerTitle>Add expense</DrawerTitle>
               <DrawerDescription>

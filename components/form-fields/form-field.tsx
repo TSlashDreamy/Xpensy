@@ -13,11 +13,17 @@ export default function FormField({
     <Field>
       {label &&
         (typeof label === "string" ? (
-          <FieldLabel htmlFor={id}>{label}</FieldLabel>
+          <FieldLabel className="text-sm sm:text-xs" htmlFor={id}>
+            {label}
+          </FieldLabel>
         ) : (
           label
         ))}
-      <Input aria-invalid={Boolean(error?.errors.length)} {...other} />
+      <Input
+        className="h-auto py-2 text-sm sm:text-xs sm:py-1"
+        aria-invalid={Boolean(error?.errors.length)}
+        {...other}
+      />
       <FieldError>{error?.errors.join(",\n")}</FieldError>
     </Field>
   );

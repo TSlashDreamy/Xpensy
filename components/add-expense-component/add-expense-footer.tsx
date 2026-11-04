@@ -1,3 +1,8 @@
+import {
+  RiCheckLine as AcceptIcon,
+  RiCloseLine as CloseIcon,
+} from "@remixicon/react";
+
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
@@ -13,12 +18,23 @@ export default function AddExpenseFooter({
 }: AddExpenseFooterProps) {
   if (isMobileView) {
     return (
-      <DrawerFooter className="px-0">
-        <Button type="submit" className="w-full" disabled={isAdding}>
+      <DrawerFooter className="px-0 flex-row justify-evenly">
+        <Button
+          type="submit"
+          className="rounded-2xl h-auto py-2.5 px-6 text-sm"
+          disabled={isAdding}
+        >
+          <AcceptIcon />
           {isAdding ? "Saving..." : "Add"}
         </Button>
         <DrawerClose asChild>
-          <Button variant="outline">Cancel</Button>
+          <Button
+            className="rounded-2xl h-auto py-2.5 px-6 text-sm"
+            variant="outline"
+          >
+            <CloseIcon />
+            Cancel
+          </Button>
         </DrawerClose>
       </DrawerFooter>
     );
@@ -26,11 +42,13 @@ export default function AddExpenseFooter({
 
   return (
     <DialogFooter>
-      <Button type="submit" disabled={isAdding}>
+      <Button className="py-1 sm:py-0" type="submit" disabled={isAdding}>
         {isAdding ? "Saving..." : "Add"}
       </Button>
       <DialogClose asChild>
-        <Button variant="outline">Cancel</Button>
+        <Button className="py-1 sm:py-0" variant="outline">
+          Cancel
+        </Button>
       </DialogClose>
     </DialogFooter>
   );

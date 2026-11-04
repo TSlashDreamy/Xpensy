@@ -108,7 +108,7 @@ export default function ComboboxField({
       >
         <ComboboxInput
           aria-invalid={Boolean(error?.errors.length)}
-          className="mt-2"
+          className="mt-2 h-auto py-1 text-sm sm:text-xs sm:py-0 *:py-0!"
           placeholder={placeholder}
         />
         <ComboboxContent>
