@@ -62,7 +62,7 @@ export function DatePicker({
             aria-invalid={Boolean(error?.errors.length)}
             variant="outline"
             data-empty={!date}
-            className="w-full mt-2 justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+            className="h-auto py-2 text-sm sm:text-xs sm:py-1 w-full mt-2 justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
           >
             <CalendarIcon />
             {date ? format(date, "PPP") : <span>Pick a date</span>}

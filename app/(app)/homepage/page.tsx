@@ -1,7 +1,4 @@
-import {
-  RiFoldersLine as CollectionsIcon,
-  RiHistoryLine as HistoryIcon,
-} from "@remixicon/react";
+import { RiFoldersLine as CollectionsIcon } from "@remixicon/react";
 import { Suspense } from "react";
 
 import ExpenseCounter from "@/components/expense-counter/expense-counter";
@@ -10,7 +7,6 @@ import HomeActions from "@/components/home-actions/home-actions";
 import HomeActionsSkeleton from "@/components/home-actions/home-actions-skeleton";
 import LastExpenses from "@/components/last-expenses/last-expenses";
 import LastExpensesSkeleton from "@/components/last-expenses/last-expenses-skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function Homepage() {
@@ -29,11 +25,7 @@ export default function Homepage() {
           <HomeActions />
         </Suspense>
       </div>
-      <div className="absolute -bottom-12 inset-x-0 h-30 flex flex-col items-center gap-3.5 shrink-0 overflow-hidden">
-        <Badge variant="secondary">
-          <HistoryIcon />
-          Latest expenses
-        </Badge>
+      <div className="absolute -bottom-12 inset-x-0">
         <Suspense fallback={<LastExpensesSkeleton />}>
           <LastExpenses />
         </Suspense>

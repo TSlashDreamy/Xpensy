@@ -1,3 +1,4 @@
+import { RiHistoryLine as HistoryIcon } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +12,8 @@ import {
 } from "@/components/ui/item";
 import { getLatestGroupedExpenses } from "@/lib/actions/getLatestGroupedExpenses";
 import { getCurrencies } from "@/lib/currencies";
+
+import { Badge } from "../ui/badge";
 
 const amountFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -41,7 +44,7 @@ export default async function LastExpenses() {
     currencies.map(({ code, symbol }) => [code, symbol ?? code]),
   );
 
-  return groupedExpenses.flatMap(({ user, expenses }) =>
+  const expensesCards = groupedExpenses.flatMap(({ user, expenses }) =>
     expenses.map((expense) => (
       <Item key={expense.id} className="max-w-lg">
         <ItemMedia>
@@ -65,5 +68,15 @@ export default async function LastExpenses() {
         </ItemActions>
       </Item>
     )),
+  );
+
+  return (
+    <div className="h-30 flex flex-col items-center gap-3.5 shrink-0 overflow-hidden">
+      <Badge variant="secondary">
+        <HistoryIcon />
+        Latest expenses
+      </Badge>
+      {expensesCards}
+    </div>
   );
 }
