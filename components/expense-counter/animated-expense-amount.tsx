@@ -48,14 +48,15 @@ export default function AnimatedExpenseAmount({
     return () => clearInterval(id);
   }, [isPending, expensesAmount, prefersReducedMotion]);
 
-  const length = displayedDigits.length;
-
   return (
     <span className={cn("relative inline-flex tabular-nums", className)}>
       <span className="sr-only">{String(expensesAmount)}</span>
       <span aria-hidden="true" className="inline-flex">
-        {displayedDigits.map((character, index) => {
+        {displayedDigits.map((character, index, { length }) => {
           const key = length - 1 - index;
+          const decimalIndex = displayedDigits.indexOf(".");
+          const integerEnd =
+            decimalIndex === -1 ? displayedDigits.length : decimalIndex;
 
           if (NON_DIGIT_RE.test(character)) {
             return (
@@ -67,6 +68,12 @@ export default function AnimatedExpenseAmount({
 
           return (
             <DigitColumn
+              // Every 3rd digit should have a padding
+              className={
+                index < integerEnd - 1 && (integerEnd - 1 - index) % 3 === 0
+                  ? "pr-2"
+                  : null
+              }
               key={key}
               digit={Number(character)}
               isPending={isPending}

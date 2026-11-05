@@ -4,13 +4,16 @@ import React from "react";
 interface DigitColumnProps {
   digit: number;
   isPending: boolean;
+  className?: string | null;
 }
 
 const DIGIT_VALUES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
-function DigitColumn({ digit, isPending }: DigitColumnProps) {
+function DigitColumn({ digit, isPending, className }: DigitColumnProps) {
   return (
-    <span className="inline-block h-[1em] overflow-hidden align-bottom">
+    <span
+      className={`inline-block h-[1em] overflow-hidden align-bottom ${className}`}
+    >
       <span
         className={cn(
           isPending ? "duration-100 ease-linear" : "duration-500 ease-out",
