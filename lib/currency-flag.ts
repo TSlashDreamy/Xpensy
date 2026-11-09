@@ -9,6 +9,8 @@ const NO_SYMBOLIC_CURRENCIES = new Set([
   "XPF",
   "ANG",
   "CMD",
+  // Not a country, but a valid ISO 4217 code with a numeric identifier.
+  "XDR",
 ]);
 
 const isCountryCode = (code: string, isoNumeric?: number | null) => {

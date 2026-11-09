@@ -1,25 +1,19 @@
 "use client";
 
+import { RiAddLine as AddIcon } from "@remixicon/react";
 import React from "react";
 
+import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { useIsMobile } from "@/hooks/use-mobile";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@/components/ui/responsive-dialog";
 import type { Currency } from "@/lib/currencies";
 
-import AddExpenseTrigger from "./add-expense-trigger";
 import AddExpenseForm from "../forms/add-expense-form";
 
 interface AddExpenseProps {
@@ -32,61 +26,35 @@ export default function AddExpense({
   defaultCurrency,
 }: AddExpenseProps) {
   const [isOpened, setIsOpened] = React.useState(false);
-  const isMobile = useIsMobile();
 
   const handleSuccess = React.useCallback(() => setIsOpened(false), []);
 
-  if (isMobile) {
-    return (
-      <Drawer
-        open={isOpened}
-        onOpenChange={setIsOpened}
-        repositionInputs={false}
-      >
-        <AddExpenseTrigger isMobileView />
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-sm overflow-y-auto">
-            <DrawerHeader>
-              <DrawerTitle>Add expense</DrawerTitle>
-              <DrawerDescription>
-                Enter the amount and pick a currency
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="px-4 flex flex-col items-center justify-center text-center">
-              <div className="w-full">
-                <AddExpenseForm
-                  isMobileView
-                  onSuccess={handleSuccess}
-                  currencies={currencies}
-                  defaultCurrency={defaultCurrency}
-                />
-              </div>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Dialog open={isOpened} onOpenChange={setIsOpened}>
-      <AddExpenseTrigger />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add expense</DialogTitle>
-          <DialogDescription>
+    <ResponsiveDialog
+      open={isOpened}
+      onOpenChange={setIsOpened}
+      drawerProps={{ repositionInputs: false }}
+    >
+      <ResponsiveDialogTrigger asChild>
+        <Button className="rounded-full size-14 sm:size-10" variant="outline">
+          <AddIcon className="size-5 sm:size-4" />
+        </Button>
+      </ResponsiveDialogTrigger>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Add expense</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             Enter the amount and pick a currency
-          </DialogDescription>
-        </DialogHeader>
-        <div className="text-center">
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <div className="px-4 text-center md:px-0">
           <AddExpenseForm
             onSuccess={handleSuccess}
             currencies={currencies}
             defaultCurrency={defaultCurrency}
           />
         </div>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

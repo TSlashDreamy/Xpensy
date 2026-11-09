@@ -1,55 +1,49 @@
+"use client";
+
 import {
   RiCheckLine as AcceptIcon,
   RiCloseLine as CloseIcon,
 } from "@remixicon/react";
+import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
-import { DialogClose, DialogFooter } from "@/components/ui/dialog";
-import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
+import {
+  ResponsiveDialogClose,
+  ResponsiveDialogFooter,
+  useResponsiveDialog,
+} from "@/components/ui/responsive-dialog";
 
 interface AddExpenseFooterProps {
-  isAdding: boolean;
-  isMobileView: boolean;
+  submitting: boolean;
 }
 
 export default function AddExpenseFooter({
-  isAdding,
-  isMobileView,
+  submitting,
 }: AddExpenseFooterProps) {
-  if (isMobileView) {
-    return (
-      <DrawerFooter className="px-0 flex-row justify-evenly">
-        <Button
-          type="submit"
-          className="rounded-2xl h-auto py-2.5 px-6 text-sm"
-          disabled={isAdding}
-        >
-          <AcceptIcon />
-          {isAdding ? "Saving..." : "Add"}
-        </Button>
-        <DrawerClose asChild>
-          <Button
-            className="rounded-2xl h-auto py-2.5 px-6 text-sm"
-            variant="outline"
-          >
-            <CloseIcon />
-            Cancel
-          </Button>
-        </DrawerClose>
-      </DrawerFooter>
-    );
-  }
+  const { isMobile } = useResponsiveDialog();
 
   return (
-    <DialogFooter>
-      <Button className="py-1 sm:py-0" type="submit" disabled={isAdding}>
-        {isAdding ? "Saving..." : "Add"}
+    <ResponsiveDialogFooter
+      className={cn(isMobile && "px-0 flex-row justify-evenly")}
+    >
+      <Button
+        disabled={submitting}
+        type="submit"
+        size={isMobile ? "touch" : "default"}
+      >
+        <AcceptIcon />
+        {submitting ? "Saving..." : "Add"}
       </Button>
-      <DialogClose asChild>
-        <Button className="py-1 sm:py-0" variant="outline">
+      <ResponsiveDialogClose asChild>
+        <Button
+          disabled={submitting}
+          variant="outline"
+          size={isMobile ? "touch" : "default"}
+        >
+          <CloseIcon />
           Cancel
         </Button>
-      </DialogClose>
-    </DialogFooter>
+      </ResponsiveDialogClose>
+    </ResponsiveDialogFooter>
   );
 }

@@ -19,6 +19,7 @@ import { matchesCurrencyQuery } from "@/lib/currency-search";
 export type CurrencyCode = Currency["code"];
 
 interface CurrencySwitcherProps {
+  className?: string;
   currencies: Currency[];
   value: CurrencyCode;
   onValueChange?: (currency: CurrencyCode) => void;
@@ -30,7 +31,8 @@ interface CurrencySwitcherProps {
  * A fully controlled currency combobox with search. The selected currency is
  * owned by the parent, which keeps it in sync with the rest of the app.
  */
-export function CurrencySwitcher({
+export default function CurrencySwitcher({
+  className,
   currencies,
   value,
   onValueChange,
@@ -94,6 +96,7 @@ export function CurrencySwitcher({
               variant="ghost"
               size="icon-xl"
               aria-label="Select currency"
+              className={className}
             />
           }
           showChevron={false}

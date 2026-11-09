@@ -5,7 +5,7 @@ import React from "react";
 import { updatePreferredCurrency } from "@/lib/actions/updatePreferredCurrency";
 import type { Currency } from "@/lib/currencies";
 
-import { CurrencySwitcher } from "../currency-switcher";
+import CurrencySwitcher from "../currency-switcher";
 import AnimatedExpenseAmount from "./animated-expense-amount";
 
 interface ExpenseCounterClientProps {

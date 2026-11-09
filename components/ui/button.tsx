@@ -31,6 +31,7 @@ const buttonVariants = cva(
         "icon-sm": "size-6 [&_svg:not([class*='size-'])]:size-3",
         "icon-lg": "size-8 [&_svg:not([class*='size-'])]:size-4",
         "icon-xl": "size-10 [&_svg:not([class*='size-'])]:size-8",
+        touch: "h-auto rounded-2xl px-6 py-2.5 text-sm",
       },
     },
     defaultVariants: {
