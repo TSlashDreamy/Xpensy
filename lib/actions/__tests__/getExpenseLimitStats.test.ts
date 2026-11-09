@@ -114,8 +114,8 @@ describe("getExpenseLimitStats", () => {
     getExchangeRatesMock.mockResolvedValue({ USD: 1, EUR: 2 });
     queryResult = {
       data: [
-        { amount: 10, currency: "USD", expense_date: "2026-11-08" },
-        { amount: 10, currency: "EUR", expense_date: "2026-11-08" },
+        { amount: 10, currency: "USD", expense_date: "2026-11-09" },
+        { amount: 10, currency: "EUR", expense_date: "2026-11-09" },
       ],
       error: null,
     };
@@ -128,6 +128,19 @@ describe("getExpenseLimitStats", () => {
     expect(getExchangeRatesMock).toHaveBeenCalledWith(["USD", "EUR"], "USD");
   });
 
+  it("subtracts expenses recorded today from today's allowance", async () => {
+    queryResult = {
+      data: [{ amount: 100, currency: "USD", expense_date: "2026-11-08" }],
+      error: null,
+    };
+
+    await expect(getExpenseLimitStats()).resolves.toEqual({
+      remaining: 1900,
+      todayAmount: 300,
+      currency: "USD",
+    });
+  });
+
   it("converts the limit amount and window rows into the selected currency", async () => {
     getUserProfileMock.mockResolvedValue({
       display_name: "Tester",
@@ -138,8 +151,8 @@ describe("getExpenseLimitStats", () => {
     getExchangeRatesMock.mockResolvedValue({ USD: 0.9, EUR: 1 });
     queryResult = {
       data: [
-        { amount: 10, currency: "USD", expense_date: "2026-11-08" },
-        { amount: 10, currency: "EUR", expense_date: "2026-11-08" },
+        { amount: 10, currency: "USD", expense_date: "2026-11-09" },
+        { amount: 10, currency: "EUR", expense_date: "2026-11-09" },
       ],
       error: null,
     };
