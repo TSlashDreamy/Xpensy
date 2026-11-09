@@ -3,7 +3,8 @@
 import { format } from "date-fns";
 
 import { getExpenseLimit } from "@/lib/actions/getExpenseLimits";
-import { getExchangeRates } from "@/lib/currency-conversion";
+import { getUserProfile } from "@/lib/actions/getUserProfile";
+import { getExchangeRates, sumInCurrency } from "@/lib/currency-conversion";
 import { calculateExpenseLimitStats } from "@/lib/expense-limit-stats";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { createClient } from "@/lib/supabase/server";
@@ -41,11 +42,19 @@ export async function getExpenseLimitStats(
   }
 
   const rows = data ?? [];
-  const currencies = [...new Set(rows.map(({ currency }) => currency))];
-  const rates = await getExchangeRates(currencies, limit.currency);
+  const profile = await getUserProfile(user.id);
+  const selectedCurrency = profile?.preferred_currency ?? "USD";
+  const currencies = [
+    ...new Set([limit.currency, ...rows.map(({ currency }) => currency)]),
+  ];
+  const rates = await getExchangeRates(currencies, selectedCurrency);
+  const amount = sumInCurrency(
+    [{ amount: limit.amount, currency: limit.currency }],
+    rates,
+  );
 
   const { remaining, todayAmount } = calculateExpenseLimitStats({
-    amount: limit.amount,
+    amount,
     startDate: limit.start_date,
     endDate: limit.end_date,
     rows,
@@ -53,5 +62,5 @@ export async function getExpenseLimitStats(
     today: format(new Date(), "yyyy-MM-dd"),
   });
 
-  return { remaining, todayAmount, currency: limit.currency };
+  return { remaining, todayAmount, currency: selectedCurrency };
 }

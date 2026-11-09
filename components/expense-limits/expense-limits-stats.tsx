@@ -22,11 +22,27 @@ export default async function ExpenseLimitsStats() {
 
   return (
     <div className="flex gap-4">
-      <Badge variant="secondary">
-        {symbol} {amountFormatter.format(stats.remaining)} left
+      <Badge
+        className="animate-in fade-in slide-in-from-bottom-1 duration-300"
+        variant="secondary"
+      >
+        <span
+          key={stats.remaining}
+          className="animate-in fade-in zoom-in-95 inline-block duration-600 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:animate-none"
+        >
+          {`${symbol} ${amountFormatter.format(stats.remaining)} left`}
+        </span>
       </Badge>
-      <Badge variant="secondary">
-        {symbol} {amountFormatter.format(stats.todayAmount)} for today
+      <Badge
+        className="animate-in fade-in slide-in-from-bottom-1 duration-600"
+        variant="secondary"
+      >
+        <span
+          key={stats.remaining}
+          className="animate-in fade-in zoom-in-95 inline-block duration-1200 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:animate-none"
+        >
+          {symbol} {amountFormatter.format(stats.todayAmount)} for today
+        </span>
       </Badge>
     </div>
   );
