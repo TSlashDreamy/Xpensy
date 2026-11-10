@@ -99,6 +99,13 @@ describe("getExpenseLimitStats", () => {
       remaining: 1000,
       todayAmount: 200,
       currency: "USD",
+      configuredLimit: 2000,
+      configuredLimitCurrency: "USD",
+      convertedLimit: 2000,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: 50,
     });
 
     expect(builder.filter).toHaveBeenCalledWith("collection_id", "is", null);
@@ -124,6 +131,13 @@ describe("getExpenseLimitStats", () => {
       remaining: 70,
       todayAmount: 14,
       currency: "USD",
+      configuredLimit: 100,
+      configuredLimitCurrency: "USD",
+      convertedLimit: 100,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: 70,
     });
     expect(getExchangeRatesMock).toHaveBeenCalledWith(["USD", "EUR"], "USD");
   });
@@ -138,6 +152,13 @@ describe("getExpenseLimitStats", () => {
       remaining: 1900,
       todayAmount: 300,
       currency: "USD",
+      configuredLimit: 2000,
+      configuredLimitCurrency: "USD",
+      convertedLimit: 2000,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: 95,
     });
   });
 
@@ -161,6 +182,13 @@ describe("getExpenseLimitStats", () => {
       remaining: 71,
       todayAmount: 14.2,
       currency: "EUR",
+      configuredLimit: 100,
+      configuredLimitCurrency: "USD",
+      convertedLimit: 90,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: 79,
     });
     expect(getExchangeRatesMock).toHaveBeenCalledWith(["USD", "EUR"], "EUR");
   });
@@ -178,6 +206,13 @@ describe("getExpenseLimitStats", () => {
       remaining: 110,
       todayAmount: 22,
       currency: "USD",
+      configuredLimit: 100,
+      configuredLimitCurrency: "EUR",
+      convertedLimit: 110,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: 100,
     });
     expect(getExchangeRatesMock).toHaveBeenCalledWith(["EUR"], "USD");
   });
@@ -208,6 +243,34 @@ describe("getExpenseLimitStats", () => {
       remaining: 2000,
       todayAmount: 400,
       currency: "USD",
+      configuredLimit: 2000,
+      configuredLimitCurrency: "USD",
+      convertedLimit: 2000,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: 100,
+    });
+  });
+
+  it("returns a negative percent left when the limit is overspent", async () => {
+    getExpenseLimitMock.mockResolvedValue({ ...limit, amount: 100 });
+    queryResult = {
+      data: [{ amount: 150, currency: "USD", expense_date: "2026-11-09" }],
+      error: null,
+    };
+
+    await expect(getExpenseLimitStats()).resolves.toEqual({
+      remaining: -50,
+      todayAmount: 0,
+      currency: "USD",
+      configuredLimit: 100,
+      configuredLimitCurrency: "USD",
+      convertedLimit: 100,
+      startDate: "2026-11-08",
+      endDate: "2026-11-12",
+      daysLeft: 5,
+      percentLeft: -50,
     });
   });
 });

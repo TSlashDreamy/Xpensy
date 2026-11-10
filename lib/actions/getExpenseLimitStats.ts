@@ -9,10 +9,19 @@ import { calculateExpenseLimitStats } from "@/lib/expense-limit-stats";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { createClient } from "@/lib/supabase/server";
 
+import type { ExpenseLimits } from "../types";
+
 export interface ExpenseLimitStats {
   remaining: number;
   todayAmount: number;
   currency: string;
+  configuredLimit: ExpenseLimits["amount"];
+  configuredLimitCurrency: ExpenseLimits["currency"];
+  convertedLimit: number;
+  startDate: ExpenseLimits["start_date"];
+  endDate: ExpenseLimits["end_date"];
+  daysLeft: number;
+  percentLeft: number;
 }
 
 export async function getExpenseLimitStats(
@@ -53,14 +62,26 @@ export async function getExpenseLimitStats(
     rates,
   );
 
-  const { remaining, todayAmount } = calculateExpenseLimitStats({
-    amount,
+  const { remaining, todayAmount, daysLeft, percentLeft } =
+    calculateExpenseLimitStats({
+      amount,
+      startDate: limit.start_date,
+      endDate: limit.end_date,
+      rows,
+      rates,
+      today: format(new Date(), "yyyy-MM-dd"),
+    });
+
+  return {
+    remaining,
+    todayAmount,
+    currency: selectedCurrency,
+    configuredLimit: limit.amount,
+    configuredLimitCurrency: limit.currency,
+    convertedLimit: amount,
     startDate: limit.start_date,
     endDate: limit.end_date,
-    rows,
-    rates,
-    today: format(new Date(), "yyyy-MM-dd"),
-  });
-
-  return { remaining, todayAmount, currency: selectedCurrency };
+    daysLeft,
+    percentLeft,
+  };
 }

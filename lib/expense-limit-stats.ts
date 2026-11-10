@@ -26,9 +26,15 @@ export function calculateExpenseLimitStats({
   rows,
   rates,
   today,
-}: ExpenseLimitStatsInput): { remaining: number; todayAmount: number } {
+}: ExpenseLimitStatsInput): {
+  remaining: number;
+  todayAmount: number;
+  daysLeft: number;
+  percentLeft: number;
+} {
   const spent = sumInCurrency(rows, rates);
   const remaining = roundCurrencyAmount(amount - spent);
+  const percentLeft = amount > 0 ? Math.round((remaining / amount) * 100) : 0;
 
   const inRange = startDate <= today && today <= endDate;
   const daysLeft = inRange
@@ -47,5 +53,16 @@ export function calculateExpenseLimitStats({
         )
       : 0;
 
-  return { remaining, todayAmount };
+  return { remaining, todayAmount, daysLeft, percentLeft };
+}
+
+export function percentLeftLabel(stats: {
+  remaining: number;
+  percentLeft: number;
+}): string {
+  if (stats.remaining >= 0) {
+    return `${stats.percentLeft}% left`;
+  }
+  const over = Math.abs(stats.percentLeft);
+  return over < 1 ? "Over the limit" : `${over}% over the limit`;
 }
