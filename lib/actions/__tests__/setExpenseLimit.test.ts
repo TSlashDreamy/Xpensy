@@ -6,37 +6,27 @@ import { createClient } from "@/lib/supabase/server";
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-type TableQueryBuilder = {
-  insert: (values: unknown) => Promise<{ error: null }>;
-  update: (values: unknown) => {
-    eq: (column: string, value: string) => Promise<{ error: null }>;
-  };
+type LookupResult = {
+  data: { id: string } | null;
+  error: { details: string } | null;
 };
 
-// The real PostgrestQueryBuilder methods read their state from `this`.
-// Calling a destructured method would leave `this` undefined and reproduce
-// the `cloneRequestState` TypeError.
-const insert = vi.fn(function (this: TableQueryBuilder | undefined) {
-  if (!this) {
-    throw new TypeError(
-      "Cannot read properties of undefined (reading 'cloneRequestState')",
-    );
-  }
+type WriteResult = {
+  error: { code: string; details: string } | null;
+};
 
-  return Promise.resolve({ error: null });
-});
+let lookupResult: LookupResult;
 
-const update = vi.fn(function (this: TableQueryBuilder | undefined) {
-  if (!this) {
-    throw new TypeError(
-      "Cannot read properties of undefined (reading 'cloneRequestState')",
-    );
-  }
-
-  return { eq: vi.fn(async () => ({ error: null })) };
-});
-
-const table: TableQueryBuilder = { insert, update };
+const lookupBuilder = {
+  select: vi.fn(() => lookupBuilder),
+  eq: vi.fn(() => lookupBuilder),
+  is: vi.fn(() => lookupBuilder),
+  maybeSingle: vi.fn(async () => lookupResult),
+};
+const insert = vi.fn(async (): Promise<WriteResult> => ({ error: null }));
+const updateEq = vi.fn(async (): Promise<WriteResult> => ({ error: null }));
+const update = vi.fn(() => ({ eq: updateEq }));
+const table = { select: vi.fn(() => lookupBuilder), insert, update };
 
 const createClientMock = vi.mocked(createClient);
 
@@ -74,17 +64,75 @@ afterEach(() => {
 });
 
 describe("setExpenseLimitAction", () => {
-  it("inserts a new limit through the table query builder", async () => {
+  it("inserts when no existing limit exists", async () => {
+    lookupResult = { data: null, error: null };
+
     const result = await setExpenseLimitAction({}, buildFormData());
 
     expect(result).toMatchObject({ success: true, message: null });
     expect(insert).toHaveBeenCalledWith(expectedLimit);
+    expect(update).not.toHaveBeenCalled();
+    expect(lookupBuilder.is).toHaveBeenCalledWith("collection_id", null);
   });
 
-  it("updates an existing limit through the table query builder", async () => {
-    const result = await setExpenseLimitAction({}, buildFormData(), "limit-1");
+  it("updates the existing limit by id", async () => {
+    lookupResult = { data: { id: "limit-1" }, error: null };
+
+    const result = await setExpenseLimitAction({}, buildFormData());
 
     expect(result).toMatchObject({ success: true, message: null });
     expect(update).toHaveBeenCalledWith(expectedLimit);
+    expect(updateEq).toHaveBeenCalledWith("id", "limit-1");
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when there is no authenticated user", async () => {
+    createClientMock.mockResolvedValue({
+      auth: {
+        getUser: vi.fn(async () => ({ data: { user: null } })),
+      },
+      from: vi.fn(() => table),
+    } as unknown as Awaited<ReturnType<typeof createClient>>);
+
+    const result = await setExpenseLimitAction({}, buildFormData());
+
+    expect(result).toMatchObject({
+      success: false,
+      message: "We couldn't find a user",
+    });
+    expect(table.select).not.toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when the existing-limit lookup fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    lookupResult = { data: null, error: { details: "lookup failed" } };
+
+    const result = await setExpenseLimitAction({}, buildFormData());
+
+    expect(result).toMatchObject({
+      success: false,
+      message: "We couldn't write your info to database. Try again later.",
+    });
+    expect(insert).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledWith("lookup failed");
+  });
+
+  it("returns an error when the insert fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    lookupResult = { data: null, error: null };
+    insert.mockResolvedValueOnce({
+      error: { code: "23505", details: "duplicate key" },
+    });
+
+    const result = await setExpenseLimitAction({}, buildFormData());
+
+    expect(result).toMatchObject({
+      success: false,
+      message: "We couldn't write your info to database. Try again later.",
+    });
+    expect(errorSpy).toHaveBeenCalledWith("duplicate key");
   });
 });

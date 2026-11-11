@@ -17,18 +17,16 @@ export async function getExpenseLimit(
 
   if (!user) return null;
 
-  const { data, error } = await supabase
+  const limitQuery = supabase
     .from(SUPABASE_TABLES.EXPENSE_LIMITS)
     .select(
       "id, user_id, amount, currency, start_date, end_date, collection_id",
     )
-    .eq(
-      collection_id ? "collection_id" : "user_id",
-      collection_id ? collection_id : user.id,
-    )
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("user_id", user.id);
+
+  const { data, error } = collection_id
+    ? await limitQuery.eq("collection_id", collection_id).maybeSingle()
+    : await limitQuery.is("collection_id", null).maybeSingle();
 
   if (error) {
     console.error(error.details);

@@ -14,17 +14,20 @@ import {
 } from "@/components/ui/popover";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Currency } from "@/lib/currencies";
+import type { ExpenseLimits } from "@/lib/types";
 
 import SetLimitForm from "../forms/set-limit-form";
 
 interface ExpenseLimitsProps {
   currencies: Currency[];
   defaultCurrency?: string;
+  limit?: ExpenseLimits | null;
 }
 
 export default function ExpenseLimits({
   currencies,
   defaultCurrency,
+  limit,
 }: ExpenseLimitsProps) {
   const [isOpened, setIsOpened] = React.useState(false);
   const isMobile = useIsMobile();
@@ -48,6 +51,16 @@ export default function ExpenseLimits({
         <SetLimitForm
           currencies={currencies}
           defaultCurrency={defaultCurrency}
+          initialValues={
+            limit
+              ? {
+                  amount: limit.amount,
+                  currency: limit.currency,
+                  startDate: limit.start_date,
+                  endDate: limit.end_date,
+                }
+              : null
+          }
           onSuccess={handleSuccess}
         />
       </PopoverContent>

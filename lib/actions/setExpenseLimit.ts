@@ -9,8 +9,6 @@ import { createClient } from "@/lib/supabase/server";
 
 import { SUPABASE_TABLES } from "../supabase/constants";
 
-import type { ExpenseLimits } from "../types";
-
 export interface SetExpenseLimitState {
   error?: {
     limitAmount?: { errors: string[] };
@@ -71,7 +69,6 @@ function getAndValidateData(formData: FormData) {
 export async function setExpenseLimitAction(
   _prevState: SetExpenseLimitState,
   formData: FormData,
-  existingLimitId?: ExpenseLimits["id"],
 ): Promise<SetExpenseLimitState> {
   const { normalizedData, validatedFields } = getAndValidateData(formData);
 
@@ -101,19 +98,38 @@ export async function setExpenseLimitAction(
     };
   }
 
+  const collectionId: string | null = null; // TODO: use the collection id when collection-aware entry lands
+
   const data = {
     user_id: user.id,
     amount: limitAmount,
     currency: limitCurrency,
     start_date: limitStartDate,
     end_date: limitEndDate,
-    // TODO: collection_id should be included when expense is added through collection
-    collection_id: null,
+    collection_id: collectionId,
   };
 
   const expenseLimits = supabase.from(SUPABASE_TABLES.EXPENSE_LIMITS);
-  const { error: processingError } = existingLimitId
-    ? await expenseLimits.update(data).eq("id", existingLimitId)
+
+  const limitQuery = expenseLimits.select("id").eq("user_id", user.id);
+
+  const { data: existingLimit, error: lookupError } = collectionId
+    ? await limitQuery.eq("collection_id", collectionId).maybeSingle()
+    : await limitQuery.is("collection_id", null).maybeSingle();
+
+  if (lookupError) {
+    console.error(lookupError.details);
+
+    return {
+      error: {},
+      values: normalizedData,
+      message: "We couldn't write your info to database. Try again later.",
+      success: false,
+    };
+  }
+
+  const { error: processingError } = existingLimit
+    ? await expenseLimits.update(data).eq("id", existingLimit.id)
     : await expenseLimits.insert(data);
 
   if (processingError) {

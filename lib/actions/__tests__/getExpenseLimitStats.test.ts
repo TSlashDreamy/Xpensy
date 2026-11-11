@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getExpenseLimit } from "@/lib/actions/getExpenseLimits";
+import { getExpenseLimit } from "@/lib/actions/getExpenseLimit";
 import { getExpenseLimitStats } from "@/lib/actions/getExpenseLimitStats";
 import { getUserProfile } from "@/lib/actions/getUserProfile";
 import { getExchangeRates } from "@/lib/currency-conversion";
 import { createClient } from "@/lib/supabase/server";
 
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
-vi.mock("@/lib/actions/getExpenseLimits", () => ({ getExpenseLimit: vi.fn() }));
+vi.mock("@/lib/actions/getExpenseLimit", () => ({ getExpenseLimit: vi.fn() }));
 vi.mock("@/lib/actions/getUserProfile", () => ({ getUserProfile: vi.fn() }));
 vi.mock("@/lib/currency-conversion", async (importOriginal) => {
   const actual =

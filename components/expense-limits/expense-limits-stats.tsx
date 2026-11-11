@@ -1,5 +1,12 @@
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 
+import {
+  RiPieChartLine as LimitIcon,
+  RiExchangeLine as ConvertIcon,
+  RiPercentLine as PercentageIcon,
+  RiCalendar2Line as DateRangeIcon,
+  RiCalendarScheduleLine as DateLeftIcon,
+} from "@remixicon/react";
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -47,23 +54,32 @@ export default async function ExpenseLimitsStats() {
         <PopoverTrigger>
           <Badge
             className="animate-in fade-in slide-in-from-bottom-1 duration-300"
-            variant="button"
+            variant={stats.remaining <= 0 ? "destructive" : "button"}
           >
             <span
               key={stats.remaining}
               className="animate-in fade-in zoom-in-95 inline-block duration-600 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:animate-none"
             >
-              {`${symbol} ${amountFormatter.format(stats.remaining)} left`}
+              {`${symbol} ${amountFormatter.format(stats.remaining)} ${stats.remaining <= 0 ? "over limit" : "left"}`}
             </span>
           </Badge>
         </PopoverTrigger>
         <PopoverContent>
           <ul className="flex flex-col gap-1">
-            <li>{`Configured limit: ${initialCurrencySymbol} ${amountFormatter.format(stats.configuredLimit)}`}</li>
+            <li className="flex gap-1 items-center">
+              <LimitIcon size="16" />
+              {`Configured limit: ${initialCurrencySymbol} ${amountFormatter.format(stats.configuredLimit)}`}
+            </li>
             {stats.currency !== stats.configuredLimitCurrency && (
-              <li>{`In selected currency: ${symbol} ${amountFormatter.format(stats.convertedLimit)}`}</li>
+              <li className="flex gap-1 items-center">
+                <ConvertIcon size="16" />
+                {`In selected currency: ${symbol} ${amountFormatter.format(stats.convertedLimit)}`}
+              </li>
             )}
-            <li>{percentLeftLabel(stats)}</li>
+            <li className="flex gap-1 items-center">
+              <PercentageIcon size="16" />
+              {percentLeftLabel(stats)}
+            </li>
           </ul>
         </PopoverContent>
       </Popover>
@@ -83,8 +99,14 @@ export default async function ExpenseLimitsStats() {
         </PopoverTrigger>
         <PopoverContent>
           <ul className="flex flex-col gap-1">
-            <li>{`Period: ${format(parseISO(stats.startDate), "MMM d, yyyy")} – ${format(parseISO(stats.endDate), "MMM d, yyyy")}`}</li>
-            <li>{daysLeftLabel}</li>
+            <li className="flex gap-1 items-center">
+              <DateRangeIcon size="16" />
+              {`Period: ${format(parseISO(stats.startDate), "MMM d, yyyy")} – ${format(parseISO(stats.endDate), "MMM d, yyyy")}`}
+            </li>
+            <li className="flex gap-1 items-center">
+              <DateLeftIcon size="16" />
+              {daysLeftLabel}
+            </li>
           </ul>
         </PopoverContent>
       </Popover>

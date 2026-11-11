@@ -1,12 +1,19 @@
 "use client";
 
-import { RiCheckLine as AcceptIcon } from "@remixicon/react";
+import {
+  RiCheckLine as AcceptIcon,
+  RiEdit2Line as UpdateIcon,
+  RiDeleteBack2Line as ClearIcon,
+} from "@remixicon/react";
 import { format, endOfMonth } from "date-fns";
 import React from "react";
 
 import FormField from "@/components/form-fields/form-field";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
+import { Spinner } from "@/components/ui/spinner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { clearExpenseLimit } from "@/lib/actions/clearExpenseLimit";
 import {
   setExpenseLimitAction,
   type SetExpenseLimitState,
@@ -16,16 +23,25 @@ import type { Currency } from "@/lib/currencies";
 import CurrencyField from "../form-fields/currency-field";
 import DatePicker from "../form-fields/date-picker";
 
+export type LimitValues = {
+  amount: number;
+  currency: string;
+  startDate: string;
+  endDate: string;
+} | null;
+
 interface SetLimitFormProps {
   onSuccess: () => void;
   currencies: Currency[];
   defaultCurrency?: string;
+  initialValues?: LimitValues;
 }
 
 export default function SetLimitForm({
   onSuccess,
   currencies,
   defaultCurrency,
+  initialValues,
 }: SetLimitFormProps) {
   const initialState: SetExpenseLimitState = {
     message: null,
@@ -36,6 +52,24 @@ export default function SetLimitForm({
     setExpenseLimitAction,
     initialState,
   );
+  const [isClearing, startClearing] = React.useTransition();
+  const [clearError, setClearError] = React.useState<string | null>(null);
+
+  const isMobile = useIsMobile();
+
+  const handleClear = React.useCallback(() => {
+    setClearError(null);
+
+    startClearing(async () => {
+      const cleared = await clearExpenseLimit();
+
+      if (cleared) {
+        onSuccess();
+      } else {
+        setClearError("We couldn't remove your limit. Try again later.");
+      }
+    });
+  }, [onSuccess]);
 
   const { todayDate, endOfMonthDate } = React.useMemo(() => {
     const today = new Date();
@@ -58,9 +92,19 @@ export default function SetLimitForm({
     if (state.success) onSuccess();
   }, [state, onSuccess]);
 
-  // Currency before fail -> User preference currency -> Default fallback currency
+  const initialAmount = state.values?.limitAmount ?? initialValues?.amount;
+
+  // Currency before fail -> Pre-filled currency -> User preference -> Default fallback currency
   const initialCurrency =
-    state.values?.limitCurrency ?? defaultCurrency ?? "USD";
+    state.values?.limitCurrency ??
+    initialValues?.currency ??
+    defaultCurrency ??
+    "USD";
+
+  const initialStartDate =
+    state.values?.limitStartDate || initialValues?.startDate || todayDate;
+  const initialEndDate =
+    state.values?.limitEndDate || initialValues?.endDate || endOfMonthDate;
 
   return (
     <form action={formAction}>
@@ -75,7 +119,7 @@ export default function SetLimitForm({
               placeholder="0"
               step="0.01"
               type="number"
-              defaultValue={state.values?.limitAmount}
+              defaultValue={initialAmount}
               error={state.error?.limitAmount}
               className="h-9 sm:h-7 text-sm sm:text-xs"
               required
@@ -96,21 +140,49 @@ export default function SetLimitForm({
           endName="limitEndDate"
           range
           label="Limit period"
-          defaultValue={state.values?.limitStartDate || todayDate}
-          endDefaultValue={state.values?.limitEndDate || endOfMonthDate}
+          defaultValue={initialStartDate}
+          endDefaultValue={initialEndDate}
           error={dateRangeError}
           required
         />
         <Field>
           <Button
+            disabled={isPending || isClearing}
             type="submit"
-            className="rounded-2xl h-auto py-2.5 px-6 text-sm"
-            disabled={isPending}
+            size={isMobile ? "touch" : "default"}
           >
-            <AcceptIcon />
-            {isPending ? "Saving..." : "Set limit"}
+            {isPending ? (
+              <Spinner data-icon="inline-start" />
+            ) : initialValues ? (
+              <UpdateIcon />
+            ) : (
+              <AcceptIcon />
+            )}
+            {isPending
+              ? initialValues
+                ? "Updating..."
+                : "Saving..."
+              : initialValues
+                ? "Update limits"
+                : "Set limit"}
           </Button>
-          <FieldError>{state.message}</FieldError>
+          {initialValues && (
+            <Button
+              disabled={isPending || isClearing}
+              onClick={handleClear}
+              type="button"
+              size={isMobile ? "touch" : "default"}
+              variant="destructive"
+            >
+              {isClearing ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <ClearIcon />
+              )}
+              {isClearing ? "Removing..." : "Remove limit"}
+            </Button>
+          )}
+          <FieldError>{clearError ?? state.message}</FieldError>
         </Field>
       </FieldGroup>
     </form>

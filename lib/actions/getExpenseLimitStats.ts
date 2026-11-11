@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 
-import { getExpenseLimit } from "@/lib/actions/getExpenseLimits";
+import { getExpenseLimit } from "@/lib/actions/getExpenseLimit";
 import { getUserProfile } from "@/lib/actions/getUserProfile";
 import { getExchangeRates, sumInCurrency } from "@/lib/currency-conversion";
 import { calculateExpenseLimitStats } from "@/lib/expense-limit-stats";

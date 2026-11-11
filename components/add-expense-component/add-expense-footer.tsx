@@ -12,6 +12,7 @@ import {
   ResponsiveDialogFooter,
   useResponsiveDialog,
 } from "@/components/ui/responsive-dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AddExpenseFooterProps {
   submitting: boolean;
@@ -31,7 +32,7 @@ export default function AddExpenseFooter({
         type="submit"
         size={isMobile ? "touch" : "default"}
       >
-        <AcceptIcon />
+        {submitting ? <Spinner data-icon="inline-start" /> : <AcceptIcon />}
         {submitting ? "Saving..." : "Add"}
       </Button>
       <ResponsiveDialogClose asChild>
