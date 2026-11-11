@@ -15,7 +15,7 @@ import { getCurrencies } from "@/lib/currencies";
 
 import { Badge } from "../ui/badge";
 
-const amountFormatter = new Intl.NumberFormat("en-US", {
+const amountFormatter = new Intl.NumberFormat("uk-UA", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -38,7 +38,7 @@ export default async function LastExpenses() {
     getCurrencies(),
   ]);
 
-  if (!groupedExpenses) return null;
+  if (!groupedExpenses || !groupedExpenses.length) return null;
 
   const symbols = new Map(
     currencies.map(({ code, symbol }) => [code, symbol ?? code]),

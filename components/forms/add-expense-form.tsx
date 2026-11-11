@@ -11,20 +11,18 @@ import { getExpenseCategories } from "@/lib/actions/getExpenseCategories";
 import type { Currency } from "@/lib/currencies";
 
 import AddExpenseFooter from "../add-expense-component/add-expense-footer";
-import { CurrencySwitcher } from "../currency-switcher";
+import CurrencySwitcher from "../currency-switcher";
 import ComboboxField from "../form-fields/combobox-field";
-import { DatePicker } from "../form-fields/date-picker";
+import DatePicker from "../form-fields/date-picker";
 
 interface AddExpenseFormProps {
   onSuccess: () => void;
-  isMobileView?: boolean;
   currencies: Currency[];
   defaultCurrency?: string;
 }
 
 export default function AddExpenseForm({
   onSuccess,
-  isMobileView = false,
   currencies,
   defaultCurrency,
 }: AddExpenseFormProps) {
@@ -119,7 +117,7 @@ export default function AddExpenseForm({
           required
         />
         <Field>
-          <AddExpenseFooter isMobileView={isMobileView} isAdding={isPending} />
+          <AddExpenseFooter submitting={isPending} />
           <FieldError>{state.message}</FieldError>
         </Field>
       </FieldGroup>

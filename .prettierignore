@@ -14,3 +14,6 @@ yarn.lock
 # Cache and logs
 .turbo/
 *.log
+
+# Database migrations (hand-formatted SQL)
+docs/info/migrations/

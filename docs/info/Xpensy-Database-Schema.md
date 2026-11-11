@@ -201,6 +201,11 @@ CREATE TABLE public.expense_limits (
   );
 ```
 
+**One limit per user/collection:** `expense_limits` enforces a single row per scope:
+
+- `expense_limits_personal_unique` — unique `user_id` where `collection_id IS NULL`.
+- `expense_limits_collection_unique` — unique `(user_id, collection_id)` where `collection_id IS NOT NULL`.
+
 ## 7. expenses Table (The Ledger)
 
 | Name            | Type          | Constraints |

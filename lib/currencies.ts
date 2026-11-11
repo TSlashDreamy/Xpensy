@@ -9,44 +9,53 @@ export interface Currency {
 }
 
 const FrankfurterCurrencySchema = z.object({
-  iso_code: z.string().length(3),
+  iso_code: z.string().min(3),
   name: z.string(),
   symbol: z.string().nullable(),
   iso_numeric: z.coerce.number().nullable().optional(),
+  type: z.string(),
 });
 
-const FrankfurterCurrenciesSchema = z.array(FrankfurterCurrencySchema);
+// Validated per item so a single unexpected entry cannot discard the whole list.
+const FrankfurterCurrenciesSchema = z.array(z.unknown());
+
+const CURRENCY_TYPE = "currency";
 
 const FALLBACK_CURRENCIES: Currency[] = [
   { code: "USD", name: "United States Dollar", symbol: "$", isoNumeric: 0 },
 ];
 
-const CRYPTO_OR_METAL = new Set([
-  "BTC",
-  "ETH",
-  "BCH",
-  "LTC",
-  "XRP",
-  "XMR",
-  "DASH",
-  "ZEC",
-  "ETC",
-  "BNB",
-  "SOL",
-  "ADA",
-  "DOT",
-  "MATIC",
-  "AVAX",
-  "XAG",
-  "XAU",
-  "XPD",
-  "XPT",
-  "XDR",
-]);
-
 const FRANKFURTER_CURRENCIES_URL = "https://api.frankfurter.dev/v2/currencies";
 
 const CURRENCIES_REQUEST_TIMEOUT_MS = 5000;
+
+const toCurrency = (input: unknown): Currency | null => {
+  const parsed = FrankfurterCurrencySchema.safeParse(input);
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  const { iso_code, name, symbol, iso_numeric, type } = parsed.data;
+
+  // The API tags crypto and metal entries with their own `type`; only fiat
+  // currencies are supported by the app.
+  if (type !== CURRENCY_TYPE) {
+    return null;
+  }
+
+  // Downstream validators expect ISO 4217 codes.
+  if (iso_code.length !== 3) {
+    return null;
+  }
+
+  return {
+    code: iso_code,
+    name,
+    symbol,
+    isoNumeric: iso_numeric ?? null,
+  };
+};
 
 /**
  * Used to get the list of supported currencies (Frankfurter API).
@@ -70,13 +79,8 @@ export async function getCurrencies(): Promise<Currency[]> {
     const parsed = FrankfurterCurrenciesSchema.parse(await response.json());
 
     return parsed
-      .map(({ iso_code, name, symbol, iso_numeric }) => ({
-        code: iso_code,
-        name,
-        symbol,
-        isoNumeric: iso_numeric ?? null,
-      }))
-      .filter(({ code }) => !CRYPTO_OR_METAL.has(code))
+      .map(toCurrency)
+      .filter((currency): currency is Currency => currency !== null)
       .sort((a, b) => a.code.localeCompare(b.code));
   } catch (error) {
     console.error(error);

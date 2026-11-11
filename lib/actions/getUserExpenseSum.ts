@@ -1,37 +1,14 @@
 "use server";
 
+import {
+  getExchangeRates,
+  sumInCurrency,
+  type CurrencyAmount,
+} from "@/lib/currency-conversion";
 import { SUPABASE_TABLES } from "@/lib/supabase/constants";
 import { createClient } from "@/lib/supabase/server";
 
-interface UserExpense {
-  amount: number;
-  currency: string;
-}
-
-type ReturnedData = UserExpense[] | null;
-
-async function getExchangeRate(
-  fromCurrency: string,
-  toCurrency: string,
-): Promise<number> {
-  try {
-    const response = await fetch(
-      `https://api.frankfurter.dev/v2/rates?base=${fromCurrency}&quotes=${toCurrency}`,
-    );
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data: Array<{ rate: number }> = await response.json();
-    const rate = data[0]?.rate;
-    if (typeof rate !== "number") throw new Error("Rate missing in response");
-    return rate;
-  } catch (error) {
-    console.error(
-      `Failed to fetch exchange rate ${fromCurrency} -> ${toCurrency}`,
-      error,
-    );
-    return 1;
-  }
-}
+type ReturnedData = CurrencyAmount[] | null;
 
 // If user_id is undefined gets the data of the current user
 export async function getUserExpenseSum(
@@ -53,24 +30,8 @@ export async function getUserExpenseSum(
 
   if (!data?.length) return 0;
 
-  const amountsByCurrency = data.reduce<Record<string, number>>(
-    (grouped, { amount, currency }) => {
-      grouped[currency] = (grouped[currency] ?? 0) + amount;
-      return grouped;
-    },
-    {},
-  );
+  const currencies = [...new Set(data.map(({ currency }) => currency))];
+  const rates = await getExchangeRates(currencies, convertToCurrency);
 
-  const sums = await Promise.all(
-    Object.entries(amountsByCurrency).map(async ([currency, total]) => {
-      const rate =
-        currency === convertToCurrency
-          ? 1
-          : await getExchangeRate(currency, convertToCurrency);
-      return total * rate;
-    }),
-  );
-
-  const total = sums.reduce((sum, value) => sum + value, 0);
-  return Math.round((total + Number.EPSILON) * 100) / 100;
+  return sumInCurrency(data, rates);
 }
