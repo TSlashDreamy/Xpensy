@@ -39,8 +39,6 @@ export default function AnimatedExpenseAmount({
       return;
     }
 
-    setDisplayedDigits((previous) => rollDigitsArray(previous));
-
     const id = setInterval(() => {
       setDisplayedDigits((previous) => rollDigitsArray(previous));
     }, 100);
