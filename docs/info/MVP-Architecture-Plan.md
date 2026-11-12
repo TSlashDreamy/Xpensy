@@ -17,7 +17,14 @@ This document outlines the core technical architecture, relational database sche
 
 ## 2. Database Schema (PostgreSQL / Supabase)
 
-Check DB_SCHEMA doc.
+See [Xpensy-Database-Schema.md](./Xpensy-Database-Schema.md) for the canonical schema and the **current live architecture snapshot (verified via Supabase MCP, 2026-11-12)**.
+
+Key live facts:
+
+- Public tables: `profiles`, `collections`, `collection_members`, `connections`, `collection_invites`, `expense_limits`, `expenses`.
+- RLS enabled on all public tables; `ensure_rls` event trigger auto-enables RLS for new public tables.
+- No storage buckets and no edge functions detected.
+- `handle_new_user()` exists but no `on_auth_user_created` trigger is installed on `auth.users` in the live DB.
 
 ## 3. Data Validation & Schema Definition (Zod)
 
@@ -53,6 +60,9 @@ export const createExpenseSchema = z.object({
   category: z.enum(expenseCategories, {
     errorMap: () => ({ message: "Please select a valid category" }),
   }),
+
+  currency: z.string().length(3).default("USD"), // ISO 4217
+  expenseDate: z.string().min(1, "Expense date is required"), // YYYY-MM-DD (DATE in DB)
 
   collectionId: z
     .string()
@@ -101,6 +111,8 @@ export async function createExpenseAction(
     amount: formData.get("amount"),
     description: formData.get("description"),
     category: formData.get("category"),
+    currency: formData.get("currency") || "USD",
+    expenseDate: formData.get("expenseDate"), // required by live schema (date)
     collectionId: formData.get("collectionId") || null,
   };
 
@@ -138,6 +150,8 @@ export async function createExpenseAction(
     amount: validatedData.amount,
     description: validatedData.description,
     category: validatedData.category,
+    currency: validatedData.currency,
+    expense_date: validatedData.expenseDate,
     user_id: user.id,
     collection_id: validatedData.collectionId || null,
   });
@@ -167,7 +181,7 @@ export async function createExpenseAction(
 - [x] Initialize Next.js app with --typescript and Tailwind configuration.
 - [x] Spin up Supabase local environment / remote instance.
 - [x] Deploy table migrations and enable Row Level Security (RLS).
-- [ ] Write DB trigger functionality syncing auth.users additions into public.profiles.
+- [~] `public.handle_new_user()` exists in the live DB, but the `on_auth_user_created` trigger on `auth.users` is **not installed** (verified 2026-11-12). Install/verify the trigger to auto-provision `public.profiles` on signup.
 
 ### Phase 2: Core Authentication
 
