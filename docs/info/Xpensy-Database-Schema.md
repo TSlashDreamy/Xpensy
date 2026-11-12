@@ -6,6 +6,16 @@ To support seamless switching between private solo expenses and collaborative co
 > **The entire architecture relies on one clever trick:** instead of separating your personal expenses and group expenses into two different tables, they live in the exact same table (`expenses`).
 > Whether an expense is private or shared depends entirely on whether it is linked to a **Collection**.
 
+## Current live architecture snapshot (verified via Supabase MCP, 2026-11-12)
+
+- **Public schema tables:** `profiles`, `collections`, `collection_members`, `connections`, `collection_invites`, `expense_limits`, `expenses` (7 tables). RLS is enabled on all of them.
+- **Extensions:** `pg_stat_statements` (1.11), `pgcrypto` (1.3), `plpgsql` (1.0), `supabase_vault` (0.3.1), `uuid-ossp` (1.1).
+- **Storage:** no buckets configured (`storage.buckets` empty).
+- **Edge Functions:** none detected.
+- **Public helper/event functions:** `get_invite_by_token(uuid)`, `handle_new_user()`, `is_collection_member(_collection_id uuid, _user_id uuid DEFAULT auth.uid())`, `is_collection_member(target_collection_id uuid)` (overload), `is_collection_owner(_collection_id uuid, _user_id uuid DEFAULT auth.uid())`, `rls_auto_enable()`.
+- **Triggers/event triggers:** no triggers on public tables or on `auth.users`; database event trigger `ensure_rls` (ddl_command_end, enabled) calls `public.rls_auto_enable()` to enable RLS on new tables created in `public`.
+- **Notable security advisors (current):** `anon_security_definer_function_executable` and `authenticated_security_definer_function_executable` warnings for public SECURITY DEFINER functions (`get_invite_by_token`, `handle_new_user`, both `is_collection_member` overloads, `is_collection_owner`, `rls_auto_enable`); `auth_leaked_password_protection` is disabled. Review execute privileges and enable leaked password protection as appropriate for your threat model.
+
 ## 1. `profiles` Table (The Users)
 
 | Name                 | Type          | Constraints |
@@ -208,21 +218,22 @@ CREATE TABLE public.expense_limits (
 
 ## 7. expenses Table (The Ledger)
 
-| Name            | Type          | Constraints |
-| --------------- | ------------- | ----------- |
-| `id`            | `uuid`        | Primary     |
-| `amount`        | `numeric`     |             |
-| `currency`      | `bpchar`      |             |
-| `description`   | `text`        |             |
-| `category`      | `text`        |             |
-| `expense_date`  | `date`        |             |
-| `user_id`       | `uuid`        |             |
-| `collection_id` | `uuid`        | Nullable    |
-| `created_at`    | `timestamptz` |             |
+| Name            | Type          | Constraints                                        |
+| --------------- | ------------- | -------------------------------------------------- |
+| `id`            | `uuid`        | Primary, default `gen_random_uuid()`               |
+| `amount`        | `numeric`     | NOT NULL, `CHECK (amount > 0)`                     |
+| `currency`      | `bpchar(3)`   | NOT NULL, default `'USD'`                          |
+| `description`   | `text`        | NOT NULL                                           |
+| `category`      | `text`        | NOT NULL, default `'General'`                      |
+| `expense_date`  | `date`        | NOT NULL                                           |
+| `user_id`       | `uuid`        | NOT NULL, FK → `profiles(id)` ON DELETE CASCADE    |
+| `collection_id` | `uuid`        | Nullable, FK → `collections(id)` ON DELETE CASCADE |
+| `created_at`    | `timestamptz` | NOT NULL, default `timezone('utc', now())`         |
 
-This is the heart of Xpesny. It records every financial transaction.
+This is the heart of Xpensy. It records every financial transaction.
 
-- `amount NUMERIC(12, 2)`: Crucial detail. Never use floating-point numbers (`float`, `real`) for money because computers suffer from rounding errors with decimals (e.g., `0.1 + 0.2` becoming `0.30000000000000004`). `NUMERIC(12,2)` guarantees exact decimal precision up to 12 digits total, with 2 decimal places.
+- `amount NUMERIC(12, 2)`: Crucial detail. Never use floating-point numbers (`float`, `real`) for money because computers suffer from rounding errors with decimals (e.g., `0.1 + 0.2` becoming `0.30000000000000004`). `NUMERIC(12,2)` guarantees exact decimal precision.
+- `expense_date`: required for every expense (the live schema has no default).
 - `user_id`: Tracks exactly who created/paid the expense, regardless of whether it's solo or shared.
 - `collection_id (Nullable)`: **This is the secret sauce**. If a user adds a personal expense (like buying a coffee), `collection_id` is saved as `NULL`. If a user adds an expense to a shared Collection (like buying groceries for the house), `collection_id` stores the specific ID of that Collection.
 
@@ -240,6 +251,13 @@ CREATE TABLE public.expenses (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 ```
+
+## Constraints & indexes (live, verified 2026-11-12)
+
+- **Primary keys:** `profiles(id)`, `collections(id)`, `collection_members(collection_id,user_id)`, `connections(user_id,connected_user_id)`, `collection_invites(id)`, `expense_limits(id)`, `expenses(id)`.
+- **Foreign keys:** `profiles.id → auth.users.id ON DELETE CASCADE`; `collections.created_by → profiles.id ON DELETE RESTRICT`; `collection_members.collection_id → collections.id ON DELETE CASCADE`; `collection_members.user_id → profiles.id ON DELETE CASCADE`; `connections.user_id/connected_user_id → profiles.id ON DELETE CASCADE`; `collection_invites.collection_id → collections.id ON DELETE CASCADE`; `collection_invites.invited_by/invitee_id → profiles.id ON DELETE CASCADE`; `collection_invites.accepted_by → profiles.id ON DELETE SET NULL`; `expense_limits.user_id → profiles.id ON DELETE CASCADE`; `expense_limits.collection_id → collections.id ON DELETE CASCADE`; `expenses.user_id → profiles.id ON DELETE CASCADE`; `expenses.collection_id → collections.id ON DELETE CASCADE`.
+- **Checks:** `expenses.amount > 0`, `expense_limits.amount > 0`, `expense_limits.end_date >= start_date`, `connections.user_id <> connected_user_id`, `collection_invites` enforces `invite_source/status` enums and source-specific field combinations, `collection_invites.email` lowercased when present.
+- **Unique/partial indexes:** `collection_invites.token` unique; `collection_invites_pending_email_unique` on `(collection_id,email)` where `status='pending' AND email IS NOT NULL`; `collection_invites_pending_invitee_unique` on `(collection_id,invitee_id)` where `status='pending' AND invitee_id IS NOT NULL`; `expense_limits_personal_unique` on `(user_id)` where `collection_id IS NULL`; `expense_limits_collection_unique` on `(user_id,collection_id)` where `collection_id IS NOT NULL`.
 
 ## DB Schema vizualization
 
@@ -276,5 +294,11 @@ Because PostgreSQL is running inside Supabase, security rules are applied direct
 
 To prevent circular RLS policy recursion and ensure high performance, security checks use `SECURITY DEFINER` helper functions (`is_collection_member`, `is_collection_owner`) and cached `(select auth.uid())` subqueries.
 
-The complete production RLS migration is located at:
-`supabase/migrations/20260904000000_rewrite_rls_policies.sql`
+**Verified live details (2026-11-12):**
+
+- RLS is enabled on all 7 public tables.
+- Public helper functions present: `is_collection_member(_collection_id uuid, _user_id uuid DEFAULT auth.uid())`, `is_collection_member(target_collection_id uuid)` (overload), `is_collection_owner(_collection_id uuid, _user_id uuid DEFAULT auth.uid())`, `get_invite_by_token(_token uuid)`.
+- `public.handle_new_user()` exists but there is currently **no trigger** on `auth.users`; profile provisioning on signup is not wired by trigger in the live database.
+- Event trigger `ensure_rls` calls `public.rls_auto_enable()` to auto-enable RLS for new tables created in `public`.
+- See [Supabase-RLS-Policies.md](./Supabase-RLS-Policies.md) for the full policy matrix and definitions.
+- This repository does not currently contain a `supabase/migrations/` directory; the previously referenced migration path `supabase/migrations/20260904000000_rewrite_rls_policies.sql` is not present in-repo.

@@ -2,6 +2,8 @@
 
 This document describes the security model, PostgreSQL functions, triggers, and Row Level Security (RLS) policies implemented for **Xpensy**.
 
+**Verified against live Supabase project via MCP on 2026-11-12.**
+
 ---
 
 ## 1. Design Overview
@@ -18,15 +20,22 @@ To ensure data confidentiality, multi-tenant isolation, and high performance acr
    - `expenses`
 
 2. **No RLS Policy Recursion:**
-   Evaluating membership directly on `collection_members` inside policies targeting `collection_members` causes PostgreSQL infinite recursion errors. We bypass this using `SECURITY DEFINER` functions:
-   - `public.is_collection_member(_collection_id, _user_id)`
-   - `public.is_collection_owner(_collection_id, _user_id)`
+   Evaluating membership directly on `collection_members` inside policies targeting `collection_members` causes PostgreSQL infinite recursion errors. We bypass this using `SECURITY DEFINER` helper functions:
+   - `public.is_collection_member(_collection_id uuid, _user_id uuid DEFAULT auth.uid())`
+   - `public.is_collection_member(target_collection_id uuid)` (single-arg overload, used in some contexts; live definition uses `search_path = ''` and `auth.uid()` directly)
+   - `public.is_collection_owner(_collection_id uuid, _user_id uuid DEFAULT auth.uid())`
+   - `public.get_invite_by_token(_token uuid)` for secure invite lookup
 
 3. **Performance Optimization:**
-   All `auth.uid()` references are wrapped as `(select auth.uid())`, forcing Postgres to evaluate user identity once per query execution plan instead of once per row scanned.
+   All `auth.uid()` references in RLS policies are wrapped as `(select auth.uid())`, forcing Postgres to evaluate user identity once per query execution plan instead of once per row scanned.
 
-4. **Automated User Profile Provisioning:**
-   A trigger (`on_auth_user_created`) automatically populates `public.profiles` upon `auth.users` insertion.
+4. **User Profile Provisioning (current state):**
+   `public.handle_new_user()` exists as a SECURITY DEFINER trigger function, but there is **no `on_auth_user_created` trigger on `auth.users`** in the live database. Automatic profile creation on signup is therefore not currently wired by DB trigger.
+
+5. **Automatic RLS on new public tables:**
+   Event trigger `ensure_rls` (`ddl_command_end`, enabled) calls `public.rls_auto_enable()`, which enables RLS for newly created tables in `public`.
+
+6. **Security advisors (current):** Supabase advisors report public/`authenticated` execute warnings for SECURITY DEFINER functions (`get_invite_by_token`, `handle_new_user`, both `is_collection_member` overloads, `is_collection_owner`, `rls_auto_enable`) and that leaked password protection is disabled. These are environment-level findings to review separately from policy correctness.
 
 ---
 
@@ -44,55 +53,87 @@ To ensure data confidentiality, multi-tenant isolation, and high performance acr
 
 ---
 
-## 3. Helper Functions & Triggers
+## 3. Helper Functions & Triggers (live)
 
-### `public.is_collection_member`
+### `public.is_collection_member` (two-arg, primary)
 
 ```sql
-CREATE OR REPLACE FUNCTION public.is_collection_member(_collection_id UUID, _user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION public.is_collection_member(_collection_id uuid, _user_id uuid DEFAULT auth.uid())
+RETURNS boolean
 LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
   SELECT EXISTS (
     SELECT 1
     FROM public.collection_members
     WHERE collection_id = _collection_id
       AND user_id = _user_id
   );
-$$;
+$function$;
+```
+
+### `public.is_collection_member` (single-arg overload)
+
+```sql
+CREATE OR REPLACE FUNCTION public.is_collection_member(target_collection_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.collection_members cm
+    WHERE cm.collection_id = target_collection_id
+      AND cm.user_id = auth.uid()
+  );
+$function$;
 ```
 
 ### `public.is_collection_owner`
 
 ```sql
-CREATE OR REPLACE FUNCTION public.is_collection_owner(_collection_id UUID, _user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION public.is_collection_owner(_collection_id uuid, _user_id uuid DEFAULT auth.uid())
+RETURNS boolean
 LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
   SELECT EXISTS (
     SELECT 1
     FROM public.collections
     WHERE id = _collection_id
       AND created_by = _user_id
   );
-$$;
+$function$;
 ```
 
-### `public.handle_new_user` Trigger
+### `public.get_invite_by_token`
+
+```sql
+CREATE OR REPLACE FUNCTION public.get_invite_by_token(_token uuid)
+RETURNS SETOF collection_invites
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+  SELECT * FROM public.collection_invites
+  WHERE token = _token
+    AND status = 'pending'
+    AND expires_at > NOW();
+$function$;
+```
+
+### `public.handle_new_user` (function exists; trigger not installed)
 
 ```sql
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER
+RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
-AS $$
+SET search_path TO 'public'
+AS $function$
 BEGIN
   INSERT INTO public.profiles (id, display_name, avatar_url, preferred_currency)
   VALUES (
@@ -104,8 +145,46 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
-$$;
+$function$;
 ```
+
+**Live state:** no trigger on `auth.users` currently calls this function.
+
+### `public.rls_auto_enable` (event trigger function)
+
+```sql
+CREATE OR REPLACE FUNCTION public.rls_auto_enable()
+RETURNS event_trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'pg_catalog'
+AS $function$
+DECLARE
+  cmd record;
+BEGIN
+  FOR cmd IN
+    SELECT *
+    FROM pg_event_trigger_ddl_commands()
+    WHERE command_tag IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
+      AND object_type IN ('table','partitioned table')
+  LOOP
+     IF cmd.schema_name IS NOT NULL AND cmd.schema_name IN ('public') AND cmd.schema_name NOT IN ('pg_catalog','information_schema') AND cmd.schema_name NOT LIKE 'pg_toast%' AND cmd.schema_name NOT LIKE 'pg_temp%' THEN
+      BEGIN
+        EXECUTE format('alter table if exists %s enable row level security', cmd.object_identity);
+        RAISE LOG 'rls_auto_enable: enabled RLS on %', cmd.object_identity;
+      EXCEPTION
+        WHEN OTHERS THEN
+          RAISE LOG 'rls_auto_enable: failed to enable RLS on %', cmd.object_identity;
+      END;
+     ELSE
+        RAISE LOG 'rls_auto_enable: skip % (either system schema or not in enforced list: %.)', cmd.object_identity, cmd.schema_name;
+     END IF;
+  END LOOP;
+END;
+$function$;
+```
+
+**Live event trigger:** `ensure_rls` on `ddl_command_end` executes `public.rls_auto_enable()` (enabled).
 
 ---
 
@@ -171,11 +250,12 @@ $$;
 
 ---
 
--- 2. AUTH.USERS TRIGGER FOR AUTOMATIC PROFILE CREATION
+-- 2. AUTH.USERS TRIGGER FOR AUTOMATIC PROFILE CREATION (reference / not installed live)
 
 ---
 
 ```sql
+-- Function exists live as public.handle_new_user(); trigger below is NOT currently present on auth.users.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -197,10 +277,11 @@ $$;
 ```
 
 ```sql
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+-- Intended (currently missing in live DB):
+-- DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+-- CREATE TRIGGER on_auth_user_created
+--   AFTER INSERT ON auth.users
+--   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
 
 ---
