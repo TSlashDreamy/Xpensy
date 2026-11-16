@@ -10,18 +10,10 @@
   <span align="center">Xpensy (sounds almost like "expensive" 🤔) is a multicurrency expense tracker for however you spend. Log an expense in whatever currency you actually paid — an online subscription, a trip abroad, or an everyday purchase at home — and Xpensy converts it all into the currency you think in, so your totals, categories, and spending limits always add up.</span>
 </p>
 <p align="center">
-  <a href="https://nextjs.org">
     <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
-  </a>
-  <a href="https://www.typescriptlang.org">
     <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  </a>
-  <a href="https://tailwindcss.com">
     <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  </a>
-  <a href="https://supabase.com">
     <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  </a>
 </p>
 
 <h3 align="center">
