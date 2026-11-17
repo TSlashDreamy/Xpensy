@@ -2,11 +2,11 @@
 
 import React from "react";
 
+import HiddenAmount from "@/components/privacy/hidden-amount";
 import { usePrivacy } from "@/components/privacy/privacy-provider";
 import PrivacyTransition from "@/components/privacy/privacy-transition";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
-import { HIDDEN_AMOUNT_TEXT } from "@/shared/privacy";
 
 import DigitColumn from "./components/digit-column";
 
@@ -56,13 +56,7 @@ export default function AnimatedExpenseAmount({
   if (hidden) {
     return (
       <PrivacyTransition hidden className={rootClassName}>
-        <span className="sr-only">Amount hidden</span>
-        <span
-          aria-hidden="true"
-          className="inline-flex select-none blur-[0.15em]"
-        >
-          {HIDDEN_AMOUNT_TEXT}
-        </span>
+        <HiddenAmount />
       </PrivacyTransition>
     );
   }

@@ -28,9 +28,6 @@ describe("PrivateAmount", () => {
 
     expect(screen.getByText("USD 1,234.56")).toBeInTheDocument();
     expect(screen.queryByText("#####")).not.toBeInTheDocument();
-    expect(
-      screen.getByText("USD 1,234.56").closest("[data-privacy-state]"),
-    ).toHaveAttribute("data-privacy-state", "visible");
   });
 
   it("renders a fixed mask and no real value when amounts are hidden", () => {
@@ -39,9 +36,6 @@ describe("PrivateAmount", () => {
     expect(screen.queryByText("USD 1,234.56")).not.toBeInTheDocument();
     expect(screen.getByText("#####")).toBeInTheDocument();
     expect(screen.getByText("Amount hidden")).toBeInTheDocument();
-    expect(
-      screen.getByText("#####").closest("[data-privacy-state]"),
-    ).toHaveAttribute("data-privacy-state", "hidden");
   });
 
   it("removes the real value immediately when hiding", () => {

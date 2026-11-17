@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { HIDDEN_AMOUNT_TEXT } from "@/shared/privacy";
 
+import HiddenAmount from "./hidden-amount";
 import { usePrivacy } from "./privacy-provider";
 import PrivacyTransition from "./privacy-transition";
 
@@ -20,22 +20,9 @@ export default function PrivateAmount({
   return (
     <PrivacyTransition
       hidden={hidden}
-      className={cn(
-        "inline-flex items-center",
-        hidden && "select-none",
-        className,
-      )}
+      className={cn("inline-flex items-center", className)}
     >
-      {hidden ? (
-        <>
-          <span aria-hidden="true" className="blur-[0.15em]">
-            {HIDDEN_AMOUNT_TEXT}
-          </span>
-          <span className="sr-only">Amount hidden</span>
-        </>
-      ) : (
-        value
-      )}
+      {hidden ? <HiddenAmount /> : value}
     </PrivacyTransition>
   );
 }

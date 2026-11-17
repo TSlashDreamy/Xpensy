@@ -6,7 +6,6 @@ import { writeHiddenCookie } from "@/shared/privacy";
 
 interface PrivacyContextValue {
   hidden: boolean;
-  setHidden: (hidden: boolean) => void;
   toggle: () => void;
 }
 
@@ -23,20 +22,13 @@ export function PrivacyProvider({
 }: PrivacyProviderProps) {
   const [hidden, setHiddenState] = React.useState(initialHidden);
 
-  const setHidden = React.useCallback((next: boolean) => {
+  const toggle = React.useCallback(() => {
+    const next = !hidden;
     setHiddenState(next);
     writeHiddenCookie(next);
-  }, []);
+  }, [hidden]);
 
-  const toggle = React.useCallback(
-    () => setHidden(!hidden),
-    [hidden, setHidden],
-  );
-
-  const value = React.useMemo(
-    () => ({ hidden, setHidden, toggle }),
-    [hidden, setHidden, toggle],
-  );
+  const value = React.useMemo(() => ({ hidden, toggle }), [hidden, toggle]);
 
   return (
     <PrivacyContext.Provider value={value}>{children}</PrivacyContext.Provider>

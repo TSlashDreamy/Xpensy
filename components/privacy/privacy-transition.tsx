@@ -18,7 +18,6 @@ export default function PrivacyTransition({
   return (
     <span
       key={hidden ? "hidden" : "visible"}
-      data-privacy-state={hidden ? "hidden" : "visible"}
       className={cn(
         "transition-[opacity,scale] duration-180 ease-out starting:scale-95 starting:opacity-0 motion-reduce:transition-none motion-reduce:starting:scale-100 motion-reduce:starting:opacity-100",
         className,

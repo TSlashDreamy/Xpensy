@@ -74,8 +74,5 @@ describe("AnimatedExpenseAmount", () => {
     expect(screen.queryByText("123")).not.toBeInTheDocument();
     expect(screen.getByText("#####")).toBeInTheDocument();
     expect(screen.getByText("Amount hidden")).toBeInTheDocument();
-    expect(
-      screen.getByText("#####").closest("[data-privacy-state]"),
-    ).toHaveAttribute("data-privacy-state", "hidden");
   });
 });
