@@ -1,11 +1,14 @@
 "use client";
 
-import { cn } from "cn";
 import React from "react";
 
+import HiddenAmount from "@/components/privacy/hidden-amount";
+import { usePrivacy } from "@/components/privacy/privacy-provider";
+import PrivacyTransition from "@/components/privacy/privacy-transition";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
+import { cn } from "@/lib/utils";
 
-import DigitColumn from "./digit-column";
+import DigitColumn from "./components/digit-column";
 
 interface AnimatedExpenseAmountProps {
   expensesAmount: number;
@@ -20,6 +23,7 @@ const rollDigitsArray = (digits: string[]): string[] =>
     if (NON_DIGIT_RE.test(character)) {
       return character;
     }
+
     return String((Number(character) + 1) % 10);
   });
 
@@ -32,9 +36,10 @@ export default function AnimatedExpenseAmount({
     String(expensesAmount).split(""),
   );
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { hidden } = usePrivacy();
 
   React.useEffect(() => {
-    if (!isPending || prefersReducedMotion) {
+    if (hidden || !isPending || prefersReducedMotion) {
       setDisplayedDigits(String(expensesAmount).split(""));
       return;
     }
@@ -44,10 +49,20 @@ export default function AnimatedExpenseAmount({
     }, 100);
 
     return () => clearInterval(id);
-  }, [isPending, expensesAmount, prefersReducedMotion]);
+  }, [hidden, isPending, expensesAmount, prefersReducedMotion]);
+
+  const rootClassName = cn("relative inline-flex tabular-nums", className);
+
+  if (hidden) {
+    return (
+      <PrivacyTransition hidden className={rootClassName}>
+        <HiddenAmount />
+      </PrivacyTransition>
+    );
+  }
 
   return (
-    <span className={cn("relative inline-flex tabular-nums", className)}>
+    <PrivacyTransition hidden={false} className={rootClassName}>
       <span className="sr-only">{String(expensesAmount)}</span>
       <span aria-hidden="true" className="inline-flex">
         {displayedDigits.map((character, index, { length }) => {
@@ -58,7 +73,7 @@ export default function AnimatedExpenseAmount({
 
           if (NON_DIGIT_RE.test(character)) {
             return (
-              <span className="h-[1em] leading-[1em]" key={key}>
+              <span className="h-[1em] leading-[1em] select-none" key={key}>
                 {character}
               </span>
             );
@@ -79,6 +94,6 @@ export default function AnimatedExpenseAmount({
           );
         })}
       </span>
-    </span>
+    </PrivacyTransition>
   );
 }

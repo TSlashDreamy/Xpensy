@@ -2,7 +2,6 @@
 
 import React from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   Combobox,
   ComboboxContent,
@@ -10,20 +9,23 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-  ComboboxTrigger,
 } from "@/components/ui/combobox";
 import type { Currency } from "@/lib/currencies";
 import { getCurrencyFlag } from "@/lib/currency-flag";
 import { matchesCurrencyQuery } from "@/lib/currency-search";
 
+import CurrencyButton from "./currency-button";
+
+import type { CurrencyButtonProps } from "./currency-button";
+
 export type CurrencyCode = Currency["code"];
 
-interface CurrencySwitcherProps {
-  className?: string;
+interface CurrencySwitcherProps extends Omit<
+  CurrencyButtonProps,
+  "currentCurrency"
+> {
   currencies: Currency[];
-  value: CurrencyCode;
   onValueChange?: (currency: CurrencyCode) => void;
-  variant?: "symbol" | "code" | "flag";
   name?: string;
 }
 
@@ -36,37 +38,13 @@ export default function CurrencySwitcher({
   currencies,
   value,
   onValueChange,
-  variant = "symbol",
   name,
+  variant,
 }: CurrencySwitcherProps) {
   const currentCurrency = React.useMemo(
     () => currencies.find(({ code }) => code === value) ?? null,
     [currencies, value],
   );
-
-  const presentation = React.useMemo(() => {
-    switch (variant) {
-      case "code":
-        return (
-          <span
-            aria-label={`Selected currency: ${value}`}
-            className="text-[0.70rem] text-muted-foreground uppercase"
-          >
-            {value}
-          </span>
-        );
-      case "symbol":
-        return (
-          <span aria-label={`Selected currency: ${value}`} className="text-2xl">
-            {currentCurrency?.symbol ?? value}
-          </span>
-        );
-      case "flag":
-        return currentCurrency ? getCurrencyFlag(currentCurrency) : value;
-      default:
-        throw new Error(`${variant} is not a supported currency variant`);
-    }
-  }, [variant, value, currentCurrency]);
 
   const handleValueChange = React.useCallback(
     (currency: Currency | null) => {
@@ -90,19 +68,12 @@ export default function CurrencySwitcher({
         itemToStringValue={(currency: Currency) => currency.code}
         filter={matchesCurrencyQuery}
       >
-        <ComboboxTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon-xl"
-              aria-label="Select currency"
-              className={className}
-            />
-          }
-          showChevron={false}
-        >
-          {presentation}
-        </ComboboxTrigger>
+        <CurrencyButton
+          className={className}
+          currentCurrency={currentCurrency}
+          value={value}
+          variant={variant}
+        />
         <ComboboxContent className="w-64 min-w-64">
           <ComboboxInput
             className="h-auto! py-1 text-sm sm:text-xs sm:py-0"

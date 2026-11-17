@@ -23,7 +23,10 @@ function DigitColumn({ digit, isPending, className }: DigitColumnProps) {
         style={{ transform: `translateY(-${digit}em)` }}
       >
         {DIGIT_VALUES.map((value) => (
-          <span key={value} className="h-[1em] leading-[1em] text-center">
+          <span
+            key={value}
+            className="h-[1em] leading-[1em] text-center select-none"
+          >
             {value}
           </span>
         ))}

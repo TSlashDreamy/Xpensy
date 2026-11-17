@@ -1,15 +1,20 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import CurrencySwitcher from "@/components/currency-switcher";
+import CurrencySwitcher from "@/components/currency-switcher/currency-switcher";
 import type { Currency } from "@/lib/currencies";
+import { cleanup, fireEvent, render, screen } from "@/test-utils";
 
 afterEach(cleanup);
 
 const currencies: Currency[] = [
-  { code: "EUR", name: "Euro", symbol: "€" },
-  { code: "UAH", name: "Ukrainian Hryvnia", symbol: "₴" },
-  { code: "USD", name: "United States Dollar", symbol: "$" },
+  { code: "EUR", name: "Euro", symbol: "€", isoNumeric: 978 },
+  { code: "UAH", name: "Ukrainian Hryvnia", symbol: "₴", isoNumeric: 980 },
+  {
+    code: "USD",
+    name: "United States Dollar",
+    symbol: "$",
+    isoNumeric: 840,
+  },
 ];
 
 const openCurrencyList = async () => {

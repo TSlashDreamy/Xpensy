@@ -14,16 +14,18 @@ import {
 } from "@/components/ui/responsive-dialog";
 import type { Currency } from "@/lib/currencies";
 
-import AddExpenseForm from "../forms/add-expense-form";
+import AddExpenseForm from "../forms/add-expense-form/add-expense-form";
 
 interface AddExpenseProps {
   currencies: Currency[];
   defaultCurrency?: string;
+  expenseCategories: string[];
 }
 
 export default function AddExpense({
   currencies,
   defaultCurrency,
+  expenseCategories,
 }: AddExpenseProps) {
   const [isOpened, setIsOpened] = React.useState(false);
 
@@ -52,6 +54,7 @@ export default function AddExpense({
             onSuccess={handleSuccess}
             currencies={currencies}
             defaultCurrency={defaultCurrency}
+            expenseCategories={expenseCategories}
           />
         </div>
       </ResponsiveDialogContent>

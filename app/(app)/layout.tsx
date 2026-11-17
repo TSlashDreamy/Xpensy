@@ -1,7 +1,13 @@
 import { Geist } from "next/font/google";
+import { cookies } from "next/headers";
 import { ThemeProvider } from "next-themes";
+import { Suspense } from "react";
 
+import HomeActionsSkeleton from "@/components/home-actions/home-actions-skeleton";
+import PrivacyBoundary from "@/components/privacy/privacy-boundary";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ExpenseCounterSkeleton from "@/containers/expense-counter/expense-counter-skeleton";
+import ExpenseLimitStatsSkeleton from "@/containers/expense-limit/expense-limit-stats-skeleton";
 
 import type { Metadata } from "next";
 
@@ -24,11 +30,25 @@ const geistSans = Geist({
   subsets: ["latin", "cyrillic"],
 });
 
+const privacyFallback = (
+  <div className="min-h-screen bg-background p-12">
+    <div className="flex h-[calc(100vh-6rem)] flex-col items-center justify-center gap-3 sm:gap-4">
+      <ExpenseLimitStatsSkeleton />
+      <ExpenseCounterSkeleton />
+      <HomeActionsSkeleton />
+    </div>
+  </div>
+);
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Start the cookie lookup without awaiting so the static shell can render;
+  // PrivacyBoundary resolves it inside the Suspense boundary below.
+  const cookiePromise = cookies();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -40,7 +60,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          <Suspense fallback={privacyFallback}>
+            <PrivacyBoundary cookiePromise={cookiePromise}>
+              <TooltipProvider>{children}</TooltipProvider>
+            </PrivacyBoundary>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

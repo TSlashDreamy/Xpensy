@@ -188,8 +188,18 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+::selection {
+  background-color: var(--primary);
+  color: var(--secondary);
+}
+
 /* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+::-moz-selection {
+  background-color: var(--primary);
+  color: var(--secondary);
 }

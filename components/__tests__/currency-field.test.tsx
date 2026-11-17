@@ -1,8 +1,8 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import CurrencyField from "@/components/form-fields/currency-field";
 import type { Currency } from "@/lib/currencies";
+import { cleanup, fireEvent, render, screen } from "@/test-utils";
 
 afterEach(cleanup);
 
