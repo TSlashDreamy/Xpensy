@@ -5,7 +5,7 @@ import React from "react";
 
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
-import DigitColumn from "./digit-column";
+import DigitColumn from "./components/digit-column";
 
 interface AnimatedExpenseAmountProps {
   expensesAmount: number;
@@ -20,6 +20,7 @@ const rollDigitsArray = (digits: string[]): string[] =>
     if (NON_DIGIT_RE.test(character)) {
       return character;
     }
+
     return String((Number(character) + 1) % 10);
   });
 
@@ -58,7 +59,7 @@ export default function AnimatedExpenseAmount({
 
           if (NON_DIGIT_RE.test(character)) {
             return (
-              <span className="h-[1em] leading-[1em]" key={key}>
+              <span className="h-[1em] leading-[1em] select-none" key={key}>
                 {character}
               </span>
             );

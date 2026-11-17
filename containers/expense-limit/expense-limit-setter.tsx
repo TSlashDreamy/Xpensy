@@ -3,6 +3,7 @@
 import { RiPieChartLine as LimitIcon } from "@remixicon/react";
 import React from "react";
 
+import SetLimitForm from "@/components/forms/set-limit-form/set-limit-form";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -16,15 +17,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { Currency } from "@/lib/currencies";
 import type { ExpenseLimits } from "@/lib/types";
 
-import SetLimitForm from "../forms/set-limit-form";
-
 interface ExpenseLimitsProps {
   currencies: Currency[];
   defaultCurrency?: string;
   limit?: ExpenseLimits | null;
 }
 
-export default function ExpenseLimits({
+export default function ExpenseLimitSetter({
   currencies,
   defaultCurrency,
   limit,

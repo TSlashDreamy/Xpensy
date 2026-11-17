@@ -1,17 +1,11 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
 import { endOfMonth, format } from "date-fns";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import SetLimitForm from "@/components/forms/set-limit-form";
+import SetLimitForm from "@/components/forms/set-limit-form/set-limit-form";
 import { clearExpenseLimit } from "@/lib/actions/clearExpenseLimit";
 import { setExpenseLimitAction } from "@/lib/actions/setExpenseLimit";
 import type { Currency } from "@/lib/currencies";
+import { cleanup, fireEvent, render, screen, waitFor } from "@/test-utils";
 
 vi.mock("@/lib/actions/setExpenseLimit", () => ({
   setExpenseLimitAction: vi.fn(async () => ({

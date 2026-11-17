@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import CurrencySwitcher from "@/components/currency-switcher";
+import CurrencySwitcher from "@/components/currency-switcher/currency-switcher";
 import type { Currency } from "@/lib/currencies";
 
 import FormField from "./form-field";
