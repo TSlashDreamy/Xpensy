@@ -16,20 +16,32 @@ import { amountFormatter } from "@/shared/utils";
 
 import type { VariantProps } from "class-variance-authority";
 
+export interface StatSegment {
+  text: string;
+  sensitive?: boolean;
+}
+
 export interface StatDetail {
+  id: string;
   icon: RemixiconComponentType;
-  label: string;
+  segments: StatSegment[];
 }
 
 export interface ExpenseStat {
   id: string;
-  title: string;
+  title: StatSegment[];
   variant: VariantProps<typeof badgeVariants>["variant"];
   details: StatDetail[];
 }
 
 const getSymbols = (currencies: Currency[]) =>
   new Map(currencies.map(({ code, symbol }) => [code, symbol ?? code]));
+
+const text = (value: string): StatSegment => ({ text: value });
+const amount = (value: string): StatSegment => ({
+  text: value,
+  sensitive: true,
+});
 
 export function buildStats(
   stats: ExpenseLimitStats,
@@ -50,39 +62,81 @@ export function buildStats(
       ? `Starts in ${daysUntilStart} day${daysUntilStart === 1 ? "" : "s"}`
       : `${stats.daysLeft} day${stats.daysLeft === 1 ? "" : "s"} left`;
 
+  // Split the label so only the percentage is masked; the words stay readable.
+  const percentLabel = percentLeftLabel(stats);
+  const percentEnd = percentLabel.indexOf("%");
+  const percentSegments =
+    percentEnd === -1
+      ? [text(percentLabel)]
+      : [
+          amount(percentLabel.slice(0, percentEnd + 1)),
+          text(percentLabel.slice(percentEnd + 1)),
+        ];
+
   const limitDetails: StatDetail[] = [
     {
+      id: "configured-limit",
       icon: LimitIcon,
-      label: `Configured limit: ${initialCurrencySymbol} ${amountFormatter.format(stats.configuredLimit)}`,
+      segments: [
+        text("Configured limit: "),
+        text(`${initialCurrencySymbol} `),
+        amount(amountFormatter.format(stats.configuredLimit)),
+      ],
     },
     ...(stats.currency !== stats.configuredLimitCurrency
       ? [
           {
+            id: "converted-limit",
             icon: ConvertIcon,
-            label: `In selected currency: ${symbol} ${amountFormatter.format(stats.convertedLimit)}`,
+            segments: [
+              text("In selected currency: "),
+              text(`${symbol} `),
+              amount(amountFormatter.format(stats.convertedLimit)),
+            ],
           },
         ]
       : []),
-    { icon: PercentageIcon, label: percentLeftLabel(stats) },
+    {
+      id: "percent-left",
+      icon: PercentageIcon,
+      segments: percentSegments,
+    },
   ];
 
   return [
     {
       id: "limit",
-      title: `${symbol} ${amountFormatter.format(stats.remaining)} ${stats.remaining <= 0 ? "over limit" : "left"}`,
+      title: [
+        text(`${symbol} `),
+        amount(amountFormatter.format(stats.remaining)),
+        text(` ${stats.remaining <= 0 ? "over limit" : "left"}`),
+      ],
       variant: stats.remaining <= 0 ? "destructive" : "button",
       details: limitDetails,
     },
     {
       id: "today",
-      title: `${symbol} ${amountFormatter.format(stats.todayAmount)} for today`,
+      title: [
+        text(`${symbol} `),
+        amount(amountFormatter.format(stats.todayAmount)),
+        text(" for today"),
+      ],
       variant: "button",
       details: [
         {
+          id: "period",
           icon: DateRangeIcon,
-          label: `Period: ${format(parseISO(stats.startDate), "MMM d, yyyy")} – ${format(parseISO(stats.endDate), "MMM d, yyyy")}`,
+          segments: [
+            text(
+              `Period: ${format(parseISO(stats.startDate), "MMM d, yyyy")} – ${format(parseISO(stats.endDate), "MMM d, yyyy")}`,
+            ),
+          ],
         },
-        { icon: DateLeftIcon, label: daysLeftLabel },
+        {
+          id: "days-left",
+          icon: DateLeftIcon,
+          segments: [text(daysLeftLabel)],
+        },
       ],
     },
   ];

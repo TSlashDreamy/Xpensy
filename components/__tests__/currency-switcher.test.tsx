@@ -7,9 +7,14 @@ import { cleanup, fireEvent, render, screen } from "@/test-utils";
 afterEach(cleanup);
 
 const currencies: Currency[] = [
-  { code: "EUR", name: "Euro", symbol: "€" },
-  { code: "UAH", name: "Ukrainian Hryvnia", symbol: "₴" },
-  { code: "USD", name: "United States Dollar", symbol: "$" },
+  { code: "EUR", name: "Euro", symbol: "€", isoNumeric: 978 },
+  { code: "UAH", name: "Ukrainian Hryvnia", symbol: "₴", isoNumeric: 980 },
+  {
+    code: "USD",
+    name: "United States Dollar",
+    symbol: "$",
+    isoNumeric: 840,
+  },
 ];
 
 const openCurrencyList = async () => {

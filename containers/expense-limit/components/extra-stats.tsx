@@ -1,3 +1,4 @@
+import PrivateAmount from "@/components/privacy/private-amount";
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -5,7 +6,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import type { ExpenseStat } from "../stats-config";
+import type { ExpenseStat, StatSegment } from "../stats-config";
+
+function StatSegments({ segments }: { segments: StatSegment[] }) {
+  return segments.map((segment, index) =>
+    segment.sensitive ? (
+      <PrivateAmount key={index} value={segment.text} />
+    ) : (
+      <span key={index}>{segment.text}</span>
+    ),
+  );
+}
 
 interface ExtraStatsProps extends ExpenseStat {
   order: number;
@@ -42,6 +53,7 @@ export default function ExtraStats({
 }: ExtraStatsProps) {
   const badgeDelay = BADGE_DELAYS[Math.min(order, BADGE_DELAYS.length - 1)];
   const spanDelay = SPAN_DELAYS[Math.min(order, SPAN_DELAYS.length - 1)];
+  const titleKey = title.map((segment) => segment.text).join("");
 
   return (
     <Popover>
@@ -51,19 +63,19 @@ export default function ExtraStats({
           variant={variant}
         >
           <span
-            key={title}
+            key={titleKey}
             className={`animate-in fade-in zoom-in-95 inline-block ${spanDelay} ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:animate-none`}
           >
-            {title}
+            <StatSegments segments={title} />
           </span>
         </Badge>
       </PopoverTrigger>
       <PopoverContent>
         <ul className="flex flex-col gap-1">
-          {details.map(({ icon: Icon, label }) => (
-            <li key={label} className="flex gap-1 items-center">
+          {details.map(({ id, icon: Icon, segments }) => (
+            <li key={id} className="flex gap-1 items-center">
               <Icon size={16} />
-              {label}
+              <StatSegments segments={segments} />
             </li>
           ))}
         </ul>

@@ -1,7 +1,5 @@
-import { RiEyeOffLine as HideIcon } from "@remixicon/react";
-
 import AddExpense from "@/components/add-expense-component/add-expense-component";
-import { Button } from "@/components/ui/button";
+import HideExpensesToggle from "@/components/home-actions/hide-expenses-toggle";
 import ExpenseLimitSetter from "@/containers/expense-limit/expense-limit-setter";
 import { getExpenseCategories } from "@/lib/actions/getExpenseCategories";
 import { getExpenseLimit } from "@/lib/actions/getExpenseLimit";
@@ -28,9 +26,7 @@ export default async function HomeActions() {
         defaultCurrency={profile?.preferred_currency ?? "USD"}
         expenseCategories={expenseCategories}
       />
-      <Button className="rounded-full size-14 sm:size-10" variant="outline">
-        <HideIcon className="size-5 sm:size-4" />
-      </Button>
+      <HideExpensesToggle />
     </div>
   );
 }

@@ -1,5 +1,8 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { PrivacyProvider } from "@/components/privacy/privacy-provider";
+import { render } from "@/test-utils";
 
 import AnimatedExpenseAmount from "../animated-expense-amount";
 
@@ -58,5 +61,21 @@ describe("AnimatedExpenseAmount", () => {
     rerender(<AnimatedExpenseAmount expensesAmount={321} isPending={false} />);
 
     expect(readDigits(container)).toBe("321");
+  });
+
+  it("never renders the real amount while hidden", () => {
+    const { container } = render(
+      <PrivacyProvider initialHidden>
+        <AnimatedExpenseAmount expensesAmount={123} isPending={false} />
+      </PrivacyProvider>,
+    );
+
+    expect(readDigits(container)).toBe("");
+    expect(screen.queryByText("123")).not.toBeInTheDocument();
+    expect(screen.getByText("#####")).toBeInTheDocument();
+    expect(screen.getByText("Amount hidden")).toBeInTheDocument();
+    expect(
+      screen.getByText("#####").closest("[data-privacy-state]"),
+    ).toHaveAttribute("data-privacy-state", "hidden");
   });
 });

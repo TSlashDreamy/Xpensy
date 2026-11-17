@@ -1,6 +1,9 @@
 import { Geist } from "next/font/google";
+import { cookies } from "next/headers";
 import { ThemeProvider } from "next-themes";
+import { Suspense } from "react";
 
+import PrivacyBoundary from "@/components/privacy/privacy-boundary";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import type { Metadata } from "next";
@@ -29,6 +32,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Start the cookie lookup without awaiting so the static shell can render;
+  // PrivacyBoundary resolves it inside the Suspense boundary below.
+  const cookiePromise = cookies();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -40,7 +47,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          <Suspense fallback={<div className="min-h-screen bg-background" />}>
+            <PrivacyBoundary cookiePromise={cookiePromise}>
+              <TooltipProvider>{children}</TooltipProvider>
+            </PrivacyBoundary>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

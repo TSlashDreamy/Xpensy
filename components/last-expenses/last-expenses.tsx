@@ -1,6 +1,7 @@
 import { RiHistoryLine as HistoryIcon } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
 
+import PrivateAmount from "@/components/privacy/private-amount";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Item,
@@ -12,13 +13,9 @@ import {
 } from "@/components/ui/item";
 import { getLatestGroupedExpenses } from "@/lib/actions/getLatestGroupedExpenses";
 import { getCurrencies } from "@/lib/currencies";
+import { amountFormatter } from "@/shared/utils";
 
 import { Badge } from "../ui/badge";
-
-const amountFormatter = new Intl.NumberFormat("uk-UA", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 function getInitials(displayName?: string) {
   const name = displayName?.trim();
@@ -62,9 +59,11 @@ export default async function LastExpenses() {
           </ItemDescription>
         </ItemContent>
         <ItemActions>
-          {`${symbols.get(expense.currency) ?? expense.currency} ${amountFormatter.format(
-            expense.amount,
-          )}`}
+          <PrivateAmount
+            value={`${symbols.get(expense.currency) ?? expense.currency} ${amountFormatter.format(
+              expense.amount,
+            )}`}
+          />
         </ItemActions>
       </Item>
     )),
